@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация — ПравоАгент</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/tokens.css">
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <style>
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            background: var(--color-bg);
+        }
+
+        .auth-hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: var(--space-2xl);
+            background: linear-gradient(135deg, var(--color-bg-card) 0%, var(--color-accent-light) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-hero::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -20%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(ellipse at center, rgba(140, 38, 234, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .auth-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -20%;
+            left: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(ellipse at center, rgba(140, 38, 234, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .auth-hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+        }
+
+        .auth-hero-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .auth-hero-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .auth-hero-logo-text {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .auth-hero h2 {
+            font-size: var(--font-size-2xl);
+            font-weight: 800;
+            margin-bottom: var(--space-md);
+            color: var(--color-text);
+            letter-spacing: -0.5px;
+        }
+
+        .auth-hero p {
+            font-size: var(--font-size-base);
+            color: var(--color-text-secondary);
+            line-height: 1.7;
+        }
+
+        .auth-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-xs) var(--space-sm);
+            background: var(--color-accent-light);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            color: var(--color-primary);
+            font-weight: 600;
+            margin-top: var(--space-lg);
+        }
+
+        .auth-form-wrapper {
+            width: 520px;
+            min-width: 520px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: var(--space-2xl);
+            background: var(--color-bg-card);
+            border-left: 1px solid var(--color-border);
+        }
+
+        .auth-form-container {
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .auth-form-title {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: var(--space-xs);
+        }
+
+        .auth-form-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+            margin-bottom: var(--space-xl);
+        }
+
+        .auth-form .form-group {
+            margin-bottom: var(--space-md);
+        }
+
+        .auth-form .form-label {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: var(--space-xs);
+            display: block;
+        }
+
+        .auth-form .form-input,
+        .auth-form .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--color-bg-input);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+            transition: all var(--transition-fast);
+            outline: none;
+        }
+
+        .auth-form .form-input:focus,
+        .auth-form .form-select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(140, 38, 234, 0.1);
+        }
+
+        .auth-form .form-input::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        .auth-form .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        .auth-form .btn-submit {
+            width: 100%;
+            padding: 10px 16px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-top: var(--space-sm);
+        }
+
+        .auth-form .btn-submit:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .auth-form .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .auth-form-footer {
+            text-align: center;
+            margin-top: var(--space-lg);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+        }
+
+        .auth-form-footer a {
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .auth-form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .auth-form-error {
+            background: var(--color-danger-bg);
+            color: var(--color-danger);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--space-md);
+            border: 1px solid rgba(220, 38, 38, 0.15);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-md);
+        }
+
+        /* Email verification modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(13, 6, 40, 0.8);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-card {
+            background: var(--color-bg-card, #1a1a2e);
+            border-radius: var(--radius-lg, 16px);
+            max-width: 420px;
+            width: 90%;
+            padding: var(--space-2xl, 32px);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm, 8px);
+            color: var(--color-text);
+        }
+        .modal-text {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-lg, 24px);
+            line-height: 1.6;
+        }
+        .modal-text strong {
+            color: var(--color-text);
+        }
+        .code-inputs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: var(--space-lg, 24px);
+        }
+        .code-input {
+            width: 44px;
+            height: 52px;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: var(--color-bg-input);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md, 8px);
+            color: var(--color-text);
+            outline: none;
+            transition: all var(--transition-fast);
+        }
+        .code-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(140, 38, 234, 0.15);
+        }
+        .btn-verify {
+            width: 100%;
+            padding: 10px 16px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .btn-verify:hover {
+            background: var(--color-primary-hover);
+        }
+        .btn-verify:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .resend-link {
+            display: inline-block;
+            margin-top: var(--space-md);
+            font-size: var(--font-size-sm);
+            color: var(--color-primary);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+        .resend-link:hover {
+            text-decoration: underline;
+        }
+        .verify-error {
+            color: var(--color-danger);
+            font-size: var(--font-size-sm);
+            margin-top: var(--space-sm);
+            display: none;
+        }
+        .verify-success {
+            color: var(--color-success);
+            font-size: var(--font-size-sm);
+            margin-top: var(--space-sm);
+            display: none;
+        }
+        .modal-loader {
+            display: none;
+            margin: var(--space-md) auto;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        .modal-loader.active {
+            display: block;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 900px) {
+            .auth-page {
+                flex-direction: column;
+            }
+            .auth-hero {
+                padding: var(--space-lg);
+                min-height: auto;
+            }
+            .auth-hero h2 {
+                font-size: var(--font-size-xl);
+            }
+            .auth-form-wrapper {
+                width: 100%;
+                min-width: auto;
+                border-left: none;
+                border-top: 1px solid var(--color-border);
+                padding: var(--space-lg);
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-page">
+        <!-- Hero section -->
+        <div class="auth-hero">
+            <div class="auth-hero-content">
+                <div class="auth-hero-logo">
+                    <div class="auth-hero-logo-icon">П</div>
+                    <span class="auth-hero-logo-text">ПравоАгент</span>
+                </div>
+                <h2>Начните работу с ПравоАгент</h2>
+                <p>
+                    Создайте аккаунт и получите доступ к multi-agent AI-платформе
+                    для юридических департаментов. Заполните данные вашей компании
+                    и выберите роль.
+                </p>
+                <div class="auth-hero-badge">
+                    Бесплатный демо-доступ
+                </div>
+            </div>
+        </div>
+
+        <!-- Form section -->
+        <div class="auth-form-wrapper">
+            <div class="auth-form-container">
+                <h1 class="auth-form-title">Создать аккаунт</h1>
+                <p class="auth-form-subtitle">Заполните данные для регистрации</p>
+
+                <form class="auth-form" id="register-form">
+                    <div class="form-group">
+                        <label class="form-label" for="username">Имя пользователя</label>
+                        <input class="form-input" type="text" id="username" name="username"
+                               placeholder="Иван Иванов" required autocomplete="name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">Электронная почта</label>
+                        <input class="form-input" type="email" id="email" name="email"
+                               placeholder="you@company.ru" required autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="company_name">Компания</label>
+                        <input class="form-input" type="text" id="company_name" name="company_name"
+                               placeholder="ООО «Ваша компания»" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Телефон</label>
+                            <input class="form-input" type="tel" id="phone" name="phone"
+                                   placeholder="+7 (999) 123-45-67">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="role">Роль в системе</label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="">Выберите роль</option>
+                                <option value="head_legal">Руководитель юрдепартамента</option>
+                                <option value="litigation">Судебный юрист</option>
+                                <option value="contracts">Договорник</option>
+                                <option value="general">Юрист общего отдела</option>
+                                <option value="legal_opinions">Юрзаключения</option>
+                                <option value="admin">Администратор</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="password">Пароль</label>
+                            <input class="form-input" type="password" id="password" name="password"
+                                   placeholder="Минимум 8 символов" required autocomplete="new-password">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="password_confirm">Повторите пароль</label>
+                            <input class="form-input" type="password" id="password_confirm"
+                                   name="password_confirm" placeholder="Повторите пароль"
+                                   required autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <div id="register-error" class="auth-form-error" style="display:none;">
+                        <span>!</span>
+                        <span id="register-error-text"></span>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="register-btn">Создать аккаунт</button>
+                </form>
+
+                <div class="auth-form-footer">
+                    Уже есть аккаунт? <a href="/auth/login">Войти</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Verification Modal -->
+    <div class="modal-overlay" id="verify-modal">
+        <div class="modal-card">
+            <div class="modal-title">Подтвердите email</div>
+            <div class="modal-text">
+                Мы отправили код подтверждения на <strong id="verify-email-display"></strong>.
+                Введите код из письма.
+            </div>
+            <div class="code-inputs" id="code-inputs">
+                <input class="code-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autofocus>
+                <input class="code-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+            </div>
+            <button class="btn-verify" id="verify-btn">Подтвердить</button>
+            <div class="verify-error" id="verify-error">Неверный код. Попробуйте снова.</div>
+            <div class="verify-success" id="verify-success">Email успешно подтверждён!</div>
+            <div class="modal-loader" id="verify-loader"></div>
+            <button class="resend-link" id="resend-btn">Отправить код повторно</button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const form = document.getElementById('register-form');
+        const btn = document.getElementById('register-btn');
+        const errorEl = document.getElementById('register-error');
+        const errorText = document.getElementById('register-error-text');
+
+        // Email verification modal
+        const modal = document.getElementById('verify-modal');
+        const verifyEmailDisplay = document.getElementById('verify-email-display');
+        const verifyBtn = document.getElementById('verify-btn');
+        const verifyError = document.getElementById('verify-error');
+        const verifySuccess = document.getElementById('verify-success');
+        const verifyLoader = document.getElementById('verify-loader');
+        const resendBtn = document.getElementById('resend-btn');
+        const codeInputs = document.querySelectorAll('.code-input');
+
+        let registeredEmail = '';
+
+        // Code input auto-advance
+        codeInputs.forEach(function(input, index) {
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value && index < codeInputs.length - 1) {
+                    codeInputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && !this.value && index > 0) {
+                    codeInputs[index - 1].focus();
+                }
+                if (e.key === 'Enter') {
+                    doVerify();
+                }
+            });
+        });
+
+        function getCode() {
+            let code = '';
+            codeInputs.forEach(function(input) {
+                code += input.value;
+            });
+            return code;
+        }
+
+        function clearCodeInputs() {
+            codeInputs.forEach(function(input) {
+                input.value = '';
+            });
+            codeInputs[0].focus();
+        }
+
+        function showVerifyModal(email) {
+            registeredEmail = email;
+            verifyEmailDisplay.textContent = email;
+            verifyError.style.display = 'none';
+            verifySuccess.style.display = 'none';
+            verifyLoader.classList.remove('active');
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Подтвердить';
+            clearCodeInputs();
+            modal.classList.add('active');
+        }
+
+        async function doVerify() {
+            const code = getCode();
+            if (code.length !== 6) {
+                verifyError.textContent = 'Введите полный 6-значный код';
+                verifyError.style.display = 'block';
+                return;
+            }
+
+            verifyError.style.display = 'none';
+            verifyLoader.classList.add('active');
+            verifyBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/auth/verify-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: registeredEmail,
+                        code: code,
+                    }),
+                });
+                const data = await res.json();
+                verifyLoader.classList.remove('active');
+                if (res.ok) {
+                    verifySuccess.style.display = 'block';
+                    setTimeout(function() {
+                        modal.classList.remove('active');
+                        window.location.href = '/onboarding';
+                    }, 1500);
+                } else {
+                    verifyError.textContent = data.detail || 'Неверный код. Попробуйте снова.';
+                    verifyError.style.display = 'block';
+                    verifyBtn.disabled = false;
+                }
+            } catch (err) {
+                verifyLoader.classList.remove('active');
+                verifyError.textContent = 'Ошибка соединения с сервером';
+                verifyError.style.display = 'block';
+                verifyBtn.disabled = false;
+            }
+        }
+
+        verifyBtn.addEventListener('click', doVerify);
+
+        resendBtn.addEventListener('click', async function() {
+            resendBtn.disabled = true;
+            resendBtn.textContent = 'Отправка...';
+            try {
+                const res = await fetch('/api/auth/resend-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: registeredEmail }),
+                });
+                if (res.ok) {
+                    clearCodeInputs();
+                    verifyError.textContent = 'Новый код отправлен';
+                    verifyError.style.color = 'var(--color-success)';
+                    verifyError.style.display = 'block';
+                    setTimeout(function() {
+                        verifyError.style.display = 'none';
+                        verifyError.style.color = '';
+                    }, 3000);
+                }
+            } catch (err) {
+                verifyError.textContent = 'Ошибка при отправке кода';
+                verifyError.style.display = 'block';
+            } finally {
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Отправить код повторно';
+            }
+        });
+
+        // Form submit
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('password').value;
+            const pwdConfirm = document.getElementById('password_confirm').value;
+
+            if (pwd.length < 6) {
+                errorText.textContent = 'Пароль должен быть минимум 6 символов';
+                errorEl.style.display = 'flex';
+                return;
+            }
+            if (pwd !== pwdConfirm) {
+                errorText.textContent = 'Пароли не совпадают';
+                errorEl.style.display = 'flex';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Регистрация...';
+            errorEl.style.display = 'none';
+
+            const email = document.getElementById('email').value;
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        username: document.getElementById('username').value,
+                        password: pwd,
+                        role: document.getElementById('role').value,
+                        company_name: document.getElementById('company_name').value,
+                        phone: document.getElementById('phone').value,
+                    }),
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    // Auto-login
+                    const loginRes = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, password: pwd }),
+                    });
+                    const loginData = await loginRes.json();
+                    if (loginRes.ok) {
+                        localStorage.setItem('access_token', loginData.access_token);
+                        localStorage.setItem('refresh_token', loginData.refresh_token);
+                    }
+                    // Show email verification modal instead of redirecting
+                    showVerifyModal(email);
+                } else {
+                    errorText.textContent = data.detail || 'Ошибка регистрации';
+                    errorEl.style.display = 'flex';
+                }
+            } catch (err) {
+                errorText.textContent = 'Ошибка соединения с сервером';
+                errorEl.style.display = 'flex';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Создать аккаунт';
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

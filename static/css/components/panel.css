@@ -1,0 +1,416 @@
+/* Panel System — ПравоАгент */
+/* VS Code / Cursor-like panel layout */
+
+.panel-layout {
+    display: grid;
+    grid-template-columns: var(--panel-activity-width, 48px) var(--panel-sidebar-width, 280px) 1fr var(--panel-right-width, 0px);
+    grid-template-rows: 1fr;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--color-bg);
+    transition: grid-template-columns var(--transition-base);
+}
+
+.panel-layout.sidebar-collapsed {
+    --panel-sidebar-width: 0px;
+}
+
+.panel-layout.right-collapsed {
+    --panel-right-width: 0px;
+}
+
+/* Activity Bar */
+.panel-activity-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--color-bg-alt);
+    border-right: 1px solid var(--color-border);
+    padding: var(--space-sm) 0;
+    gap: var(--space-xs);
+    z-index: 10;
+    overflow-y: auto;
+}
+
+.activity-bar-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    border: none;
+    background: none;
+}
+
+.activity-bar-item:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+.activity-bar-item.active {
+    color: var(--color-primary-light);
+}
+
+.activity-bar-item.active::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: var(--color-primary-light);
+    border-radius: 0 2px 2px 0;
+}
+
+.activity-bar-bottom {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+/* Panels */
+.panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+    border-right: 1px solid var(--color-border);
+    overflow: hidden;
+    position: relative;
+    min-width: 0;
+}
+
+.panel:last-child {
+    border-right: none;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-bg-alt);
+    border-bottom: 1px solid var(--color-border);
+    cursor: grab;
+    user-select: none;
+    min-height: 36px;
+    flex-shrink: 0;
+}
+
+.panel-header:active {
+    cursor: grabbing;
+}
+
+.panel-header-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.panel-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.panel-header-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+    background: none;
+    font-size: 14px;
+    padding: 0;
+}
+
+.panel-header-btn:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+.panel-body {
+    flex: 1;
+    overflow: auto;
+    padding: var(--space-sm);
+}
+
+/* Panel Resize Handle */
+.panel-resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 20;
+    transition: background var(--transition-fast);
+}
+
+.panel-resize-handle:hover,
+.panel-resize-handle.active {
+    background: var(--color-primary-light);
+}
+
+.panel-resize-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -3px;
+    right: -3px;
+    bottom: 0;
+}
+
+.panel-resize-handle.horizontal {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    cursor: row-resize;
+}
+
+/* Tabs within panels */
+.panel-tabs {
+    display: flex;
+    align-items: center;
+    background: var(--color-bg-alt);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.panel-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.panel-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    user-select: none;
+    border-right: 1px solid transparent;
+    position: relative;
+}
+
+.panel-tab:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+.panel-tab.active {
+    color: var(--color-text);
+    border-bottom-color: var(--color-primary-light);
+    background: var(--color-bg);
+}
+
+.panel-tab-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+    background: none;
+    padding: 0;
+    opacity: 0;
+}
+
+.panel-tab:hover .panel-tab-close {
+    opacity: 1;
+}
+
+.panel-tab-close:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+/* Panel Sections (grouped content within a panel) */
+.panel-section {
+    margin-bottom: var(--space-md);
+}
+
+.panel-section-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: var(--space-xs) var(--space-sm);
+    margin-bottom: var(--space-xs);
+}
+
+.panel-section-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.panel-section-item:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+.panel-section-item.active {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+.panel-section-item .item-icon {
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Split panels */
+.panel-split {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.panel-split.horizontal {
+    flex-direction: column;
+}
+
+.panel-split > .panel {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.panel-split.horizontal > .panel:last-child {
+    border-bottom: none;
+}
+
+/* Collapsed panel indicators */
+.panel-collapsed {
+    width: 0 !important;
+    overflow: hidden;
+    padding: 0;
+    border: none;
+    min-width: 0;
+    flex: 0 0 0 !important;
+}
+
+/* Animations */
+@keyframes panelSlideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes panelFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.panel-enter {
+    animation: panelFadeIn var(--transition-base) ease;
+}
+
+/* Workspace panel header with icon */
+.panel-header-icon {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Empty state in panel */
+.panel-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    color: var(--color-text-muted);
+    text-align: center;
+    gap: var(--space-sm);
+    height: 100%;
+}
+
+.panel-empty-icon {
+    font-size: 2rem;
+    opacity: 0.5;
+}
+
+.panel-empty-text {
+    font-size: var(--font-size-sm);
+    max-width: 200px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .panel-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+    }
+
+    .panel-activity-bar {
+        flex-direction: row;
+        padding: 0 var(--space-sm);
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+        height: 48px;
+    }
+
+    .activity-bar-bottom {
+        margin-top: 0;
+        flex-direction: row;
+        margin-left: auto;
+    }
+
+    .activity-bar-item.active::before {
+        left: 50%;
+        top: auto;
+        bottom: 0;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 3px;
+    }
+
+    .panel-resize-handle {
+        display: none;
+    }
+}

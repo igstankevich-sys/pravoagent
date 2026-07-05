@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ПравоАгент{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/tokens.css">
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/components/panel.css">
+    <link rel="stylesheet" href="/static/css/components/card.css">
+    <link rel="stylesheet" href="/static/css/components/table.css">
+    <link rel="stylesheet" href="/static/css/components/form.css">
+    <link rel="stylesheet" href="/static/css/components/modal.css">
+    <link rel="stylesheet" href="/static/css/components/badge.css">
+    <link rel="stylesheet" href="/static/css/components/tree.css">
+    <link rel="stylesheet" href="/static/css/components/omnibox.css">
+    <link rel="stylesheet" href="/static/css/components/banner.css">
+    <link rel="stylesheet" href="/static/css/layouts/workspace.css">
+    <script src="/static/js/panel-system.js" defer></script>
+    <script src="/static/js/chat-widget.js" defer></script>
+    <style>
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body data-role="{{ workspace_id or 'default' }}">
+    <!-- Demo Banner -->
+    <div class="demo-banner" id="demo-banner">
+        <span class="demo-banner-icon">&#9888;</span>
+        <span class="demo-banner-text">
+            <strong>ДЕМО-РЕЖИМ:</strong> Это прототип — часть портфолио кандидата Станкевича Игоря.
+            Система демонстрирует архитектуру multi-agent AI-платформы для юридических департаментов.
+        </span>
+        <span class="badge badge-test">ТЕСТ</span>
+        <button class="demo-banner-close" id="banner-close" title="Скрыть">&times;</button>
+    </div>
+
+    <!-- Workspace Layout -->
+    <div class="workspace">
+        <div class="panel-layout" id="app-layout">
+            {% block activity_bar %}{% endblock %}
+
+            {% block sidebar_panel %}{% endblock %}
+
+            {% block main_panel %}{% endblock %}
+
+            {% block right_panel %}{% endblock %}
+        </div>
+    </div>
+
+    {% block modals %}{% endblock %}
+
+    <!-- Standard modals (always available) -->
+    <div id="git-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <span class="modal-title">&#128190; Git-интеграция</span>
+                <button class="modal-close" onclick="document.getElementById('git-modal').classList.remove('open')">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: var(--space-xl);">
+                <div style="font-size: 3rem; margin-bottom: var(--space-md);">&#128679;</div>
+                <p style="font-weight: 600; margin-bottom: var(--space-sm);">Git-интеграция — в разработке</p>
+                <p class="text-sm text-muted">В будущем здесь будет доступ к системе контроля версий для документов и шаблонов.</p>
+                <button class="btn btn-sm btn-secondary" onclick="document.getElementById('git-modal').classList.remove('open')" style="margin-top: var(--space-md);">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="agents-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header">
+                <span class="modal-title">&#129302; AI-агенты</span>
+                <button class="modal-close" onclick="document.getElementById('agents-modal').classList.remove('open')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-weight: 600; margin-bottom: var(--space-md);">Выберите AI-агента:</p>
+                <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                    <div class="card card-hover" style="padding: var(--space-md); cursor: pointer;" onclick="showToast('Агент активирован','success');document.getElementById('agents-modal').classList.remove('open')">
+                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                            <span style="font-size: 1.5rem;">&#9878;</span>
+                            <div>
+                                <strong>Судебный юрист</strong>
+                                <p class="text-xs text-muted">Арбитражные и гражданские дела</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-hover" style="padding: var(--space-md); cursor: pointer;" onclick="showToast('Агент активирован','success');document.getElementById('agents-modal').classList.remove('open')">
+                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                            <span style="font-size: 1.5rem;">&#128221;</span>
+                            <div>
+                                <strong>Договорник</strong>
+                                <p class="text-xs text-muted">Управление договорами и согласование</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-hover" style="padding: var(--space-md); cursor: pointer;" onclick="showToast('Агент активирован','success');document.getElementById('agents-modal').classList.remove('open')">
+                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                            <span style="font-size: 1.5rem;">&#128221;</span>
+                            <div>
+                                <strong>Юридические заключения</strong>
+                                <p class="text-xs text-muted">Подготовка заключений и анализ</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-hover" style="padding: var(--space-md); cursor: pointer;" onclick="showToast('Агент активирован','success');document.getElementById('agents-modal').classList.remove('open')">
+                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                            <span style="font-size: 1.5rem;">&#128202;</span>
+                            <div>
+                                <strong>Head of Legal</strong>
+                                <p class="text-xs text-muted">Дашборд и KPI</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-secondary" onclick="document.getElementById('agents-modal').classList.remove('open')" style="width: 100%; margin-top: var(--space-md);">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>ПравоАгент v0.2.0 — Прототип для демонстрации компетенций</p>
+        <p>Станкевич Игорь Валерьевич · 2026</p>
+    </footer>
+
+    <script>
+        // Global toast utility
+        function showToast(msg, type) {
+            var el = document.getElementById('toast-banner') || (function() {
+                var d = document.createElement('div');
+                d.id = 'toast-banner';
+                d.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:8px 16px;border-radius:6px;z-index:9999;font-size:13px;transition:opacity .3s;max-width:320px';
+                document.body.appendChild(d);
+                return d;
+            })();
+            el.textContent = msg;
+            el.style.background = type === 'error' ? '#d32f2f' : type === 'success' ? '#388e3c' : 'var(--color-bg-alt, #333)';
+            el.style.color = '#fff';
+            el.style.opacity = '1';
+            el.style.border = type === 'warning' ? '1px solid #f57c00' : 'none';
+            setTimeout(function() { el.style.opacity = '0'; }, 3000);
+        }
+
+        // Demo banner close
+        document.getElementById('banner-close')?.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const banner = document.getElementById('demo-banner');
+            banner.classList.add('hidden');
+        });
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    overlay.classList.remove('open');
+                }
+            });
+        });
+
+        // Tree toggle
+        document.querySelectorAll('.tree-toggle:not(.tree-toggle-hidden)').forEach(function(toggle) {
+            toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const item = this.closest('.tree-item');
+                const children = item?.querySelector('.tree-children');
+                if (children) {
+                    children.classList.toggle('collapsed');
+                    this.classList.toggle('expanded');
+                }
+            });
+        });
+
+        // Collapse all tree children initially
+        document.querySelectorAll('.tree').forEach(function(tree) {
+            tree.querySelectorAll('.tree-children').forEach(function(el) {
+                el.classList.add('collapsed');
+            });
+        });
+        // Expand first item
+        const firstToggle = document.querySelector('.tree-item .tree-toggle');
+        if (firstToggle) {
+            firstToggle.classList.add('expanded');
+            const firstChildren = firstToggle.closest('.tree-item')?.querySelector('.tree-children');
+            if (firstChildren) firstChildren.classList.remove('collapsed');
+        }
+
+        {% block extra_scripts %}{% endblock %}
+    </script>
+</body>
+</html>

@@ -1,0 +1,946 @@
+{% extends "base.html" %}
+{% block title %}Договорник — ПравоАгент{% endblock %}
+
+{% block extra_styles %}
+/* Approval flow stage badges */
+.approval-stage {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+.approval-stage-completed {
+    background: var(--color-success-light, #d4edda);
+    color: var(--color-success, #155724);
+}
+.approval-stage-active {
+    background: var(--color-warning-light, #fff3cd);
+    color: var(--color-warning, #856404);
+}
+.approval-stage-pending {
+    background: var(--color-bg-hover);
+    color: var(--color-text-muted);
+}
+.approval-stage-rejected {
+    background: var(--color-danger-light, #f8d7da);
+    color: var(--color-danger, #721c24);
+}
+
+/* Chat typing indicator */
+.chat-typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: var(--space-sm) var(--space-md);
+    max-width: 85%;
+    align-self: flex-start;
+}
+.chat-typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    animation: typingBounce 1.4s infinite ease-in-out both;
+}
+.chat-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.chat-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.chat-typing-dot:nth-child(3) { animation-delay: 0s; }
+@keyframes typingBounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* Contract row clickable */
+.data-table tbody tr {
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+.data-table tbody tr:hover {
+    background: var(--color-bg-hover);
+}
+.data-table tbody tr.selected {
+    background: var(--color-primary-light, #e8f0fe);
+}
+
+/* Sortable header */
+.data-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+.data-table th.sortable:hover {
+    background: var(--color-bg-hover);
+}
+.data-table th.sortable::after {
+    content: '';
+    margin-left: 4px;
+    display: inline-block;
+    opacity: 0.3;
+}
+.data-table th.sortable.sort-asc::after {
+    content: '\25B2';
+    opacity: 1;
+}
+.data-table th.sortable.sort-desc::after {
+    content: '\25BC';
+    opacity: 1;
+}
+
+/* Create modal template list */
+.template-select-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-bottom: var(--space-xs);
+}
+.template-select-item:hover {
+    border-color: var(--color-primary);
+    background: var(--color-bg-hover);
+}
+.template-select-item.selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light, #e8f0fe);
+}
+{% endblock %}
+
+{% block activity_bar %}
+<div class="panel-activity-bar">
+    <button class="activity-bar-item active" data-panel="explorer" title="Договоры (Ctrl+B)">
+        &#128221;
+    </button>
+    <button class="activity-bar-item" data-panel="templates" title="Шаблоны">
+        &#128203;
+    </button>
+    <button class="activity-bar-item" data-panel="approval" title="Согласование">
+        &#9989;
+    </button>
+    <button class="activity-bar-item" data-panel="counterparties" title="Контрагенты">
+        &#127970;
+    </button>
+    <div class="activity-bar-bottom">
+        <button class="activity-bar-item" onclick="document.getElementById('git-modal').classList.add('open')" title="Git-интеграция">
+            &#128190;
+        </button>
+        <button class="activity-bar-item" onclick="document.getElementById('agents-modal').classList.add('open')" title="AI-агенты">
+            &#129302;
+        </button>
+        <button class="activity-bar-item" data-action="toggle-sidebar" title="Toggle Sidebar">
+            &#9776;
+        </button>
+        <button class="activity-bar-item" id="omnibox-trigger" onclick="window.omnibox.open()" title="Command Palette (Ctrl+K)">
+            &#8984;
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar_panel %}
+<div class="panel" data-panel-id="explorer" data-default-width="280">
+    <div class="panel-header">
+        <span class="panel-header-title">Договоры</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Collapse" data-action="collapse-panel">&#9660;</button>
+            <button class="panel-header-btn" title="More">&#8942;</button>
+        </div>
+    </div>
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="contracts-list">
+            <span>Договоры</span>
+        </div>
+        <div class="panel-tab" data-tab-target="templates-list">
+            <span>Шаблоны</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="counterparties-list">
+            <span>Контрагенты</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <div class="panel-section" data-tab-content="contracts-list" style="padding: var(--space-sm);">
+            <div class="workspace-sidebar-header">
+                <span class="workspace-sidebar-title">Активные договоры</span>
+                <button class="workspace-sidebar-action" title="Создать договор">+</button>
+            </div>
+            <div class="tree tree-scrollable">
+                {% if cases %}
+                    {% for case in cases %}
+                    <div class="tree-item">
+                        <div class="tree-item-content">
+                            <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                            <span class="tree-icon tree-icon-case">&#128221;</span>
+                            <span class="tree-label">{{ case.title }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="panel-empty">
+                        <div class="panel-empty-icon">&#128221;</div>
+                        <div class="panel-empty-text">Нет договоров</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="templates-list" style="display: none; padding: var(--space-sm);">
+            <div class="tree tree-scrollable">
+                <div class="tree-item">
+                    <div class="tree-item-content">
+                        <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                        <span class="tree-icon tree-icon-document">&#128196;</span>
+                        <span class="tree-label">Поставка товаров</span>
+                    </div>
+                </div>
+                <div class="tree-item">
+                    <div class="tree-item-content">
+                        <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                        <span class="tree-icon tree-icon-document">&#128196;</span>
+                        <span class="tree-label">Аренда помещений</span>
+                    </div>
+                </div>
+                <div class="tree-item">
+                    <div class="tree-item-content">
+                        <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                        <span class="tree-icon tree-icon-document">&#128196;</span>
+                        <span class="tree-label">NDA (Соглашение о конфиденциальности)</span>
+                    </div>
+                </div>
+                <div class="tree-item">
+                    <div class="tree-item-content">
+                        <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                        <span class="tree-icon tree-icon-document">&#128196;</span>
+                        <span class="tree-label">Трудовой договор</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="counterparties-list" style="display: none; padding: var(--space-sm);">
+            <div class="panel-empty">
+                <div class="panel-empty-icon">&#127970;</div>
+                <div class="panel-empty-text">Список контрагентов пуст</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block main_panel %}
+<div class="panel" data-panel-id="main" style="border-right: none;">
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="contract-view">
+            <span>Договоры</span>
+        </div>
+        <div class="panel-tab" data-tab-target="risks-tab">
+            <span>Риски</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="contract-view">
+        <div class="workspace-toolbar">
+            <span class="workspace-toolbar-title">Управление договорами</span>
+            <div class="workspace-toolbar-actions">
+                <button class="btn btn-sm" onclick="openCreateModal()">&#128221; Создать договор</button>
+                <button class="btn btn-sm btn-secondary" onclick="approveContract()">&#9989; Согласовать</button>
+                <button class="btn btn-sm btn-secondary" onclick="sendToCounterparty()">&#128228; Отправить контрагенту</button>
+            </div>
+        </div>
+
+        <!-- Contracts Table -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-header">
+                <span class="card-header-title">&#128221; Договоры</span>
+                <div class="card-header-actions">
+                    <span class="badge badge-test badge-sm">ТЕСТ</span>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="table-filters">
+                    <div class="table-filter">
+                        <label>Статус:</label>
+                        <select id="status-filter" onchange="filterContracts()">
+                            <option>Все</option>
+                            <option>Черновик</option>
+                            <option>На согласовании</option>
+                            <option>Утверждён</option>
+                            <option>Подписан</option>
+                        </select>
+                    </div>
+                    <div class="table-filter-search">
+                        <span class="search-icon">&#128269;</span>
+                        <input type="text" id="search-input" placeholder="Поиск по договорам..." class="form-input-sm" oninput="filterContracts()">
+                    </div>
+                </div>
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortContracts('title')">Договор</th>
+                                <th class="sortable" onclick="sortContracts('counterparty')">Контрагент</th>
+                                <th class="sortable" onclick="sortContracts('status')">Статус</th>
+                                <th class="sortable" onclick="sortContracts('date')">Срок</th>
+                                <th class="sortable" onclick="sortContracts('amount')">Сумма</th>
+                                <th class="cell-action"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="contracts-tbody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                                    Загрузка договоров...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approval Flow -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-header">
+                <span class="card-header-title">&#9989; Approval Flow</span>
+                <div class="card-header-actions">
+                    <span class="badge badge-test badge-sm">ТЕСТ</span>
+                </div>
+            </div>
+            <div class="card-body">
+            <div id="approval-flow-wrapper">
+                <div style="display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap;" id="approval-stages">
+                    <div id="approval-stages-list" style="display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap;">
+                        <span class="badge badge-default">&#9711; Загрузка...</span>
+                    </div>
+                    <div id="approval-actions" style="display: none; gap: var(--space-sm); margin-left: auto;">
+                        <button class="btn btn-sm btn-success" onclick="approveStage()">&#10003; Утвердить</button>
+                        <button class="btn btn-sm btn-secondary" onclick="rejectStage()">&#10007; Отклонить</button>
+                    </div>
+                </div>
+                <div id="approval-message" style="margin-top: var(--space-sm); display: none;"></div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="risks-tab" style="display: none;">
+        <div class="panel-empty">
+            <div class="panel-empty-icon">&#9888;</div>
+            <div class="panel-empty-text">Анализ рисков договоров</div>
+        </div>
+    </div>
+
+    <div class="panel-resize-handle" data-resize-target="right"></div>
+</div>
+{% endblock %}
+
+{% block right_panel %}
+<div class="panel" data-panel-id="templates" data-default-width="320" style="width: 320px; flex: none;">
+    <div class="panel-header">
+        <span class="panel-header-title">AI-агент: Договорник</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Close" data-action="collapse-panel">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <div class="chat-widget" data-agent-type="contracts" data-title="AI-агент: Договорник" data-auto-init></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Create Contract Modal -->
+<div id="create-modal" class="modal-overlay" style="display: none;">
+    <div class="modal" style="max-width: 480px;">
+        <div class="modal-header">
+            <span class="modal-title">&#128221; Создать договор</span>
+            <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">Название договора:</label>
+                <input type="text" id="new-contract-title" class="form-input" placeholder="Например: Договор поставки №1">
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">Шаблон:</label>
+                <div id="template-select-list">
+                    <div class="template-select-item selected" data-template="supply" onclick="selectTemplate(this, 'supply')">
+                        <span>&#128196;</span>
+                        <span>Поставка товаров</span>
+                    </div>
+                    <div class="template-select-item" data-template="rent" onclick="selectTemplate(this, 'rent')">
+                        <span>&#128196;</span>
+                        <span>Аренда помещений</span>
+                    </div>
+                    <div class="template-select-item" data-template="nda" onclick="selectTemplate(this, 'nda')">
+                        <span>&#128196;</span>
+                        <span>NDA (Соглашение о конфиденциальности)</span>
+                    </div>
+                    <div class="template-select-item" data-template="employment" onclick="selectTemplate(this, 'employment')">
+                        <span>&#128196;</span>
+                        <span>Трудовой договор</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">Контрагент:</label>
+                <input type="text" id="new-contract-cntr" class="form-input" placeholder="Наименование контрагента">
+            </div>
+            <div id="create-result" style="display: none; margin-top: var(--space-sm);">
+                <div class="alert alert-success">
+                    <span>Договор создан: <strong id="create-result-title"></strong></span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCreateModal()">Отмена</button>
+            <button class="btn" onclick="createContract()">Создать</button>
+        </div>
+    </div>
+</div>
+
+<!-- Export/Send Modal -->
+<div id="export-modal" class="modal-overlay" style="display: none;">
+    <div class="modal" style="max-width: 400px;">
+        <div class="modal-header">
+            <span class="modal-title">Экспорт / Отправить</span>
+            <button class="modal-close" onclick="closeExportModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="text-sm text-muted" style="margin-bottom: var(--space-md);">Выберите действие:</p>
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">Формат экспорта:</label>
+                <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+                    <button class="btn btn-sm btn-secondary" onclick="exportContract('docx')">.docx</button>
+                    <button class="btn btn-sm btn-secondary" onclick="exportContract('pdf')">.pdf</button>
+                    <button class="btn btn-sm btn-secondary" onclick="exportContract('txt')">.txt</button>
+                    <button class="btn btn-sm btn-secondary" onclick="exportContract('md')">.md</button>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">Отправить через Telegram:</label>
+                <div style="display: flex; gap: var(--space-xs);">
+                    <input type="text" id="send-telegram-chat-id" class="form-input" placeholder="Chat ID" style="flex: 1;">
+                    <button class="btn btn-sm" onclick="sendTelegram()">&#128228; Отправить</button>
+                </div>
+            </div>
+            <div id="export-result" style="margin-top: var(--space-md); display: none;">
+                <div class="alert alert-success">
+                    <span id="export-result-text"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    'use strict';
+
+    // ===== State =====
+    var contracts = [];
+    var filteredContracts = [];
+    var selectedContractId = null;
+    var sortField = null;
+    var sortAsc = true;
+    var selectedTemplate = 'supply';
+
+    // ===== Helpers =====
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function getStatusBadge(status) {
+        switch (status) {
+            case 'draft': return '<span class="badge badge-warning badge-sm">Черновик</span>';
+            case 'open': return '<span class="badge badge-warning badge-sm">Черновик</span>';
+            case 'review': return '<span class="badge badge-info badge-sm">На согласовании</span>';
+            case 'in_progress': return '<span class="badge badge-info badge-sm">На согласовании</span>';
+            case 'approved': return '<span class="badge badge-success badge-sm">Утверждён</span>';
+            case 'closed': return '<span class="badge badge-success badge-sm">Подписан</span>';
+            case 'signed': return '<span class="badge badge-success badge-sm">Подписан</span>';
+            default: return '<span class="badge badge-default badge-sm">' + escapeHtml(status) + '</span>';
+        }
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '\u2014';
+        try {
+            var d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '\u2014';
+            return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        } catch(e) {
+            return '\u2014';
+        }
+    }
+
+    // ===== 1. Load contracts from API =====
+    function loadContracts() {
+        var tbody = document.getElementById('contracts-tbody');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">Загрузка договоров...</td></tr>';
+
+        fetch('/api/cases?limit=50', {
+            headers: { 'Accept': 'application/json' },
+        })
+        .then(function(resp) {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        })
+        .then(function(data) {
+            contracts = (data.items || []).map(function(c) {
+                return {
+                    id: c.id,
+                    title: c.title || 'Без названия',
+                    counterparty: c.defendant || 'Не указан',
+                    status: c.status || 'draft',
+                    date: c.created_at,
+                    amount: null,
+                    description: c.description || '',
+                };
+            });
+            applyFiltersAndRender();
+            // Show placeholder — user must select a contract to see its approval flow
+            loadApprovalFlow(null, '');
+        })
+        .catch(function(err) {
+            console.error('Load contracts error:', err);
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: var(--space-xl); color: var(--color-danger);">' +
+                '&#9888; Ошибка загрузки: ' + escapeHtml(err.message) + '</td></tr>';
+        });
+    }
+
+    // ===== 2. Render table =====
+    function renderContracts(contractsArray) {
+        var tbody = document.getElementById('contracts-tbody');
+        if (!contractsArray || contractsArray.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">' +
+                'Нет договоров. Создайте первый договор.</td></tr>';
+            return;
+        }
+
+        var html = '';
+        contractsArray.forEach(function(c) {
+            var isSelected = (c.id === selectedContractId) ? ' selected' : '';
+            html += '<tr class="contract-row' + isSelected + '" data-contract-id="' + c.id + '" onclick="selectContract(' + c.id + ')">' +
+                '<td><strong>' + escapeHtml(c.title) + '</strong></td>' +
+                '<td class="cell-muted">' + escapeHtml(c.counterparty) + '</td>' +
+                '<td>' + getStatusBadge(c.status) + '</td>' +
+                '<td class="cell-muted">' + formatDate(c.date) + '</td>' +
+                '<td class="cell-right text-muted">' + (c.amount ? c.amount : '\u2014') + '</td>' +
+                '<td class="cell-action"><button class="table-row-action" onclick="event.stopPropagation(); openExportModal(' + c.id + ')">&#8942;</button></td>' +
+                '</tr>';
+        });
+        tbody.innerHTML = html;
+    }
+
+    // ===== 3. Filter & Search =====
+    window.filterContracts = function() {
+        applyFiltersAndRender();
+    };
+
+    function applyFiltersAndRender() {
+        var statusFilter = document.getElementById('status-filter').value.toLowerCase();
+        var searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+
+        filteredContracts = contracts.filter(function(c) {
+            if (statusFilter !== 'все' && statusFilter !== '') {
+                var statusMatch = false;
+                if (statusFilter === 'черновик') statusMatch = (c.status === 'draft' || c.status === 'open');
+                else if (statusFilter === 'на согласовании') statusMatch = (c.status === 'review' || c.status === 'in_progress');
+                else if (statusFilter === 'утверждён') statusMatch = (c.status === 'approved');
+                else if (statusFilter === 'подписан') statusMatch = (c.status === 'signed' || c.status === 'closed');
+                if (!statusMatch) return false;
+            }
+            if (searchQuery) {
+                var haystack = (c.title + ' ' + c.counterparty + ' ' + (c.description || '')).toLowerCase();
+                if (haystack.indexOf(searchQuery) === -1) return false;
+            }
+            return true;
+        });
+
+        if (sortField) {
+            filteredContracts.sort(function(a, b) {
+                var va = (a[sortField] || '').toString().toLowerCase();
+                var vb = (b[sortField] || '').toString().toLowerCase();
+                if (sortField === 'date') {
+                    va = a.date || '';
+                    vb = b.date || '';
+                }
+                if (va < vb) return sortAsc ? -1 : 1;
+                if (va > vb) return sortAsc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        renderContracts(filteredContracts);
+    }
+
+    // ===== 4. Sort =====
+    window.sortContracts = function(field) {
+        var ths = document.querySelectorAll('.data-table th.sortable');
+        ths.forEach(function(th) { th.classList.remove('sort-asc', 'sort-desc'); });
+
+        if (sortField === field) {
+            sortAsc = !sortAsc;
+        } else {
+            sortField = field;
+            sortAsc = true;
+        }
+
+        ths.forEach(function(th) {
+            if (th.getAttribute('onclick').indexOf("'" + field + "'") !== -1) {
+                th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+            }
+        });
+
+        applyFiltersAndRender();
+    };
+
+    // ===== 5. Row selection =====
+    window.selectContract = function(contractId) {
+        selectedContractId = contractId;
+        document.querySelectorAll('.contract-row').forEach(function(row) {
+            row.classList.remove('selected');
+        });
+        var row = document.querySelector('.contract-row[data-contract-id="' + contractId + '"]');
+        if (row) {
+            row.classList.add('selected');
+            var title = row.querySelector('td strong');
+            loadApprovalFlow(contractId, title ? title.textContent : '');
+        }
+    };
+
+    // ===== 6. Toolbar: Create / Approve / Send =====
+    window.openCreateModal = function() {
+        document.getElementById('create-result').style.display = 'none';
+        document.getElementById('new-contract-title').value = '';
+        document.getElementById('new-contract-cntr').value = '';
+        document.getElementById('create-modal').style.display = 'flex';
+    };
+
+    window.closeCreateModal = function() {
+        document.getElementById('create-modal').style.display = 'none';
+    };
+
+    window.selectTemplate = function(el, templateName) {
+        document.querySelectorAll('.template-select-item').forEach(function(item) {
+            item.classList.remove('selected');
+        });
+        el.classList.add('selected');
+        selectedTemplate = templateName;
+    };
+
+    window.createContract = function() {
+        var title = document.getElementById('new-contract-title').value.trim();
+        var counterparty = document.getElementById('new-contract-cntr').value.trim();
+        if (!title) { alert('Введите название договора'); return; }
+
+        var payload = {
+            template_name: selectedTemplate,
+            case_id: 0,
+            context: {
+                title: title,
+                counterparty: counterparty,
+                template: selectedTemplate,
+            }
+        };
+
+        fetch('/api/documents/from-template', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.detail) {
+                alert('Ошибка: ' + data.detail);
+                return;
+            }
+            document.getElementById('create-result-title').textContent = data.title || title;
+            document.getElementById('create-result').style.display = 'block';
+
+            loadContracts();
+
+            var newId = data.id;
+            if (newId) {
+                setTimeout(function() {
+                    window.selectContract(newId);
+                }, 100);
+            }
+        })
+        .catch(function(err) {
+            alert('Ошибка создания: ' + err);
+        });
+    };
+
+    window.approveContract = function() {
+        if (!selectedContractId) { alert('Сначала выберите договор из списка'); return; }
+
+        fetch('/api/agent/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                message: 'Согласовать договор #' + selectedContractId,
+                agent_type: 'contracts',
+                case_id: selectedContractId,
+            }),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.detail) {
+                alert('Ошибка: ' + data.detail);
+                return;
+            }
+            alert('Договор отправлен на согласование');
+            loadApprovalFlow(selectedContractId, currentContractTitle);
+        })
+        .catch(function(err) {
+            alert('Ошибка согласования: ' + err);
+        });
+    };
+
+    window.sendToCounterparty = function() {
+        if (!selectedContractId) { alert('Сначала выберите договор из списка'); return; }
+        openExportModal(selectedContractId);
+    };
+
+    // ===== 7. Export modal =====
+    window.openExportModal = function(contractId) {
+        if (contractId) selectedContractId = contractId;
+        document.getElementById('export-result').style.display = 'none';
+        document.getElementById('export-modal').style.display = 'flex';
+    };
+
+    window.closeExportModal = function() {
+        document.getElementById('export-modal').style.display = 'none';
+    };
+
+    window.exportContract = function(format) {
+        if (!selectedContractId) return;
+        fetch('/api/documents/' + selectedContractId + '/export?format=' + format)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                document.getElementById('export-result').style.display = 'block';
+                document.getElementById('export-result-text').textContent =
+                    'Файл сохранён: ' + (data.filename || 'документ.' + format) +
+                    (data.size_bytes ? ' (' + data.size_bytes + ' B)' : '');
+            })
+            .catch(function(err) {
+                alert('Ошибка экспорта: ' + err);
+            });
+    };
+
+    window.sendTelegram = function() {
+        if (!selectedContractId) { alert('Сначала выберите договор'); return; }
+        var chatId = document.getElementById('send-telegram-chat-id').value.trim();
+        if (!chatId) { alert('Введите Chat ID'); return; }
+
+        var queryParams = 'chat_id=' + encodeURIComponent(chatId) +
+            '&text=' + encodeURIComponent('Документ #' + selectedContractId + ' отправляется на согласование');
+
+        fetch('/api/integrations/telegram/send?' + queryParams, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.getElementById('export-result').style.display = 'block';
+            document.getElementById('export-result-text').textContent =
+                'Сообщение отправлено в Telegram';
+        })
+        .catch(function(err) {
+            alert('Ошибка Telegram: ' + err);
+        });
+    };
+
+    // ===== 8. Approval Flow =====
+    var approvalStages = [
+        { id: 'lawyer', label: 'Юрист', status: 'pending' },
+        { id: 'manager', label: 'Руководитель', status: 'pending' },
+        { id: 'fin_director', label: 'Фин. директор', status: 'pending' },
+        { id: 'ceo', label: 'Ген. директор', status: 'pending' },
+    ];
+    var currentApprovalStage = 0;
+    var approvalStatus = null;
+    var currentContractTitle = '';
+    var currentContractId = null;
+
+    function renderApprovalFlow() {
+        var container = document.getElementById('approval-stages-list');
+        var actions = document.getElementById('approval-actions');
+        var message = document.getElementById('approval-message');
+
+        if (!container) return;
+
+        var html = '';
+        approvalStages.forEach(function(stage, idx) {
+            if (idx > 0) {
+                html += '<span style="color: var(--color-text-muted);">&rarr;</span>';
+            }
+            var cls = 'approval-stage';
+            var icon = '';
+            if (stage.status === 'completed') {
+                cls += ' approval-stage-completed';
+                icon = '&#10003;';
+            } else if (stage.status === 'active') {
+                cls += ' approval-stage-active';
+                icon = '&#8987;';
+            } else if (stage.status === 'rejected') {
+                cls += ' approval-stage-rejected';
+                icon = '&#10007;';
+            } else {
+                cls += ' approval-stage-pending';
+                icon = '&#9711;';
+            }
+            html += '<span class="' + cls + '">' + icon + ' ' + escapeHtml(stage.label) + '</span>';
+        });
+        container.innerHTML = html;
+
+        if (approvalStatus === 'in_progress') {
+            actions.style.display = 'flex';
+            message.style.display = 'none';
+        } else if (approvalStatus === 'completed') {
+            actions.style.display = 'none';
+            message.style.display = 'block';
+            message.innerHTML = '<div class="alert alert-success">&#10003; Все этапы согласования пройдены</div>';
+        } else if (approvalStatus === 'rejected') {
+            actions.style.display = 'none';
+            message.style.display = 'block';
+            message.innerHTML = '<div class="alert alert-danger">&#10007; Согласование отклонено</div>';
+        } else {
+            actions.style.display = 'none';
+            message.style.display = 'block';
+            message.innerHTML = '<div class="alert alert-info">&#8987; Загрузка статуса...</div>';
+        }
+    }
+
+    /**
+     * Load approval flow for the selected contract.
+     * In demo mode, generates mock stages per contract.
+     * In production, would call an API endpoint.
+     */
+    function loadApprovalFlow(contractId, contractTitle) {
+        currentContractId = contractId;
+        currentContractTitle = contractTitle || '';
+
+        if (!contractId) {
+            // No contract selected — show placeholder
+            approvalStatus = null;
+            var container = document.getElementById('approval-stages-list');
+            if (container) {
+                container.innerHTML = '<span class="badge badge-default">&#9711; Выберите договор</span>';
+            }
+            document.getElementById('approval-actions').style.display = 'none';
+            document.getElementById('approval-message').style.display = 'none';
+            return;
+        }
+
+        // Reset stages to pending
+        approvalStages.forEach(function(s) { s.status = 'pending'; });
+        currentApprovalStage = 0;
+        approvalStatus = 'in_progress';
+
+        // Demo: use contract ID to generate a deterministic stage offset
+        var demoStageOffset = (contractId % 4);
+
+        for (var i = 0; i < demoStageOffset && i < approvalStages.length; i++) {
+            if (i < approvalStages.length) {
+                approvalStages[i].status = 'completed';
+                approvalStages[i].completedAt = new Date(Date.now() - (demoStageOffset - i) * 86400000).toISOString();
+            }
+        }
+        if (demoStageOffset < approvalStages.length) {
+            approvalStages[demoStageOffset].status = 'active';
+            currentApprovalStage = demoStageOffset;
+        }
+        if (demoStageOffset >= approvalStages.length) {
+            approvalStatus = 'completed';
+        }
+
+        renderApprovalFlow();
+    }
+
+    function logApprovalAction(action, stageName) {
+        var payload = {
+            action: action,
+            entity_type: 'approval_stage',
+            entity_id: String(currentContractId || ''),
+            details: JSON.stringify({
+                stage: stageName,
+                contractTitle: currentContractTitle,
+                contractId: currentContractId,
+            }),
+        };
+
+        fetch('/api/observability/action-logs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        }).catch(function(err) {
+            console.warn('Failed to log approval action:', err);
+        });
+    }
+
+    window.approveStage = function() {
+        if (!currentContractId) {
+            alert('Сначала выберите договор из списка');
+            return;
+        }
+        if (currentApprovalStage >= approvalStages.length) return;
+
+        var stage = approvalStages[currentApprovalStage];
+        stage.status = 'completed';
+
+        logApprovalAction('approval_approve', stage.label);
+
+        if (currentApprovalStage >= approvalStages.length - 1) {
+            approvalStatus = 'completed';
+        } else {
+            currentApprovalStage++;
+            approvalStages[currentApprovalStage].status = 'active';
+        }
+        renderApprovalFlow();
+    };
+
+    window.rejectStage = function() {
+        if (!currentContractId) {
+            alert('Сначала выберите договор из списка');
+            return;
+        }
+        if (currentApprovalStage >= approvalStages.length) return;
+
+        var stage = approvalStages[currentApprovalStage];
+        stage.status = 'rejected';
+        approvalStatus = 'rejected';
+
+        logApprovalAction('approval_reject', stage.label);
+        renderApprovalFlow();
+    };
+
+    // ===== 9. Chat removed — handled by chat-widget.js =====
+
+    // ===== 10. Close modals on overlay click =====
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.style.display = 'none';
+            }
+        });
+    });
+
+    // ===== 11. Init =====
+    document.addEventListener('DOMContentLoaded', function() {
+        loadContracts();
+    });
+})();
+</script>
+{% endblock %}

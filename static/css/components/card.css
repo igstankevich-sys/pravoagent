@@ -1,0 +1,252 @@
+/* Card System — ПравоАгент */
+
+.card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+.card-hover:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.card-selected {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+    gap: var(--space-sm);
+}
+
+.card-header-title {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.card-header-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    flex-shrink: 0;
+}
+
+.card-body {
+    padding: var(--space-md);
+}
+
+.card-body:only-child {
+    padding: var(--space-md);
+}
+
+.card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: var(--space-sm) var(--space-md);
+    border-top: 1px solid var(--color-border);
+    gap: var(--space-sm);
+    background: var(--color-bg);
+}
+
+/* Card variants */
+.card-compact .card-header {
+    padding: var(--space-sm) var(--space-md);
+}
+
+.card-compact .card-body {
+    padding: var(--space-sm) var(--space-md);
+}
+
+.card-flat {
+    box-shadow: none;
+    border-color: transparent;
+    background: transparent;
+}
+
+.card-flat .card-header {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.card-flat .card-body {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Status dot */
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot.status-dot-open {
+    background: var(--color-accent);
+}
+
+.status-dot.status-dot-in_progress {
+    background: var(--color-primary-light);
+}
+
+.status-dot.status-dot-closed {
+    background: var(--color-text-muted);
+}
+
+.status-dot.status-dot-pending {
+    background: var(--color-warning);
+}
+
+.status-dot.status-dot-danger {
+    background: var(--color-danger);
+}
+
+/* Card with status indicator */
+.card-status {
+    position: relative;
+}
+
+.card-status::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.card-status-open::before {
+    background: var(--color-accent);
+}
+
+.card-status-in_progress::before {
+    background: var(--color-primary-light);
+}
+
+.card-status-closed::before {
+    background: var(--color-text-muted);
+}
+
+.card-status-pending::before {
+    background: var(--color-warning);
+}
+
+/* Card grid */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-md);
+}
+
+.card-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.card-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.card-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Card list (vertical stack) */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+/* Card actions (icon buttons inside card) */
+.card-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+    background: none;
+}
+
+.card-action:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+/* Card meta info */
+.card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-top: var(--space-sm);
+}
+
+.card-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+/* Card with icon */
+.card-icon-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+}
+
+.card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    background: var(--color-bg);
+}
+
+.card-icon-accent {
+    background: var(--color-bg-hover);
+    color: var(--color-primary-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card-grid-2,
+    .card-grid-3,
+    .card-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}

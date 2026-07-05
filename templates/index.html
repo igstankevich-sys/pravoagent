@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }}</title>
+    <link rel="stylesheet" href="/static/css/tokens.css">
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/components/panel.css">
+    <link rel="stylesheet" href="/static/css/components/card.css">
+    <link rel="stylesheet" href="/static/css/components/table.css">
+    <link rel="stylesheet" href="/static/css/components/form.css">
+    <link rel="stylesheet" href="/static/css/components/modal.css">
+    <link rel="stylesheet" href="/static/css/components/badge.css">
+    <link rel="stylesheet" href="/static/css/components/tree.css">
+    <link rel="stylesheet" href="/static/css/components/omnibox.css">
+    <link rel="stylesheet" href="/static/css/components/banner.css">
+    <link rel="stylesheet" href="/static/css/layouts/workspace.css">
+    <script src="/static/js/panel-system.js" defer></script>
+</head>
+<body data-role="default">
+    <!-- Demo Banner -->
+    <div class="demo-banner" id="demo-banner">
+        <span class="demo-banner-icon">&#9888;</span>
+        <span class="demo-banner-text">
+            <strong>ДЕМО-РЕЖИМ:</strong> Это прототип — часть портфолио кандидата Станкевича Игоря.
+            Система демонстрирует архитектуру multi-agent AI-платформы для юридических департаментов.
+        </span>
+        <span class="badge badge-test">ТЕСТ</span>
+        <button class="demo-banner-close" id="banner-close" title="Скрыть">&times;</button>
+    </div>
+
+    <!-- Panel Layout -->
+    <div class="panel-layout" id="app-layout">
+        <!-- Activity Bar -->
+        <div class="panel-activity-bar">
+            <button class="activity-bar-item active" data-panel="explorer" title="Проводник (Ctrl+B)">
+                &#128193;
+            </button>
+            <button class="activity-bar-item" data-panel="search" title="Поиск">
+                &#128269;
+            </button>
+            <button class="activity-bar-item" data-panel="git" title="Git">
+                &#128190;
+            </button>
+            <button class="activity-bar-item" data-panel="extensions" title="Агенты">
+                &#129302;
+            </button>
+            <div class="activity-bar-bottom">
+                <button class="activity-bar-item" data-action="toggle-sidebar" title="Toggle Sidebar">
+                    &#9776;
+                </button>
+                <button class="activity-bar-item" id="omnibox-trigger" title="Command Palette (Ctrl+K)">
+                    &#8984;
+                </button>
+            </div>
+        </div>
+
+        <!-- Sidebar Panel (Explorer) -->
+        <div class="panel" data-panel-id="explorer" data-default-width="280">
+            <div class="panel-header">
+                <span class="panel-header-title">Проводник</span>
+                <div class="panel-header-actions">
+                    <button class="panel-header-btn" title="Collapse" data-action="collapse-panel">&#9660;</button>
+                    <button class="panel-header-btn" title="More">&#8942;</button>
+                </div>
+            </div>
+            <div class="panel-tabs">
+                <div class="panel-tab active" data-tab-target="files">
+                    <span>Дела</span>
+                </div>
+                <div class="panel-tab" data-tab-target="favorites">
+                    <span>Избранное</span>
+                    <button class="panel-tab-close">&times;</button>
+                </div>
+            </div>
+            <div class="panel-body" style="padding: 0;">
+                <!-- Tree: Cases -->
+                <div class="panel-section" data-tab-content="files" style="padding: var(--space-sm);">
+                    <div class="tree tree-scrollable" id="sidebar-tree">
+                        <p class="loading">Загрузка...</p>
+                    </div>
+                </div>
+                <!-- Favorites tab -->
+                <div class="panel-section" data-tab-content="favorites" style="display: none; padding: var(--space-sm);">
+                    <div class="panel-empty">
+                        <div class="panel-empty-icon">&#10084;</div>
+                        <div class="panel-empty-text">Нет избранных дел</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Panel -->
+        <div class="panel" data-panel-id="main" style="border-right: none;">
+            <div class="panel-tabs">
+                <div class="panel-tab active" data-tab-target="dashboard">
+                    <span>Главная</span>
+                </div>
+                <div class="panel-tab" data-tab-target="cases-list">
+                    <span>Дела</span>
+                </div>
+            </div>
+
+            <div class="panel-body" data-tab-content="dashboard">
+                <!-- Hero section -->
+                <div class="hero">
+                    <h2>ПравоАгент — Multi-Agent AI Platform</h2>
+                    <p class="hero-description">
+                        AI-слой для экосистемы ПравоТех. Автономно ведёт дела,
+                        готовит документы, ищет в базе знаний, контролирует сроки.
+                    </p>
+                </div>
+
+                <!-- Stats Grid (cards) -->
+                <div class="stats-grid">
+                    <div class="card card-hover" id="stat-cases" onclick="window.location.href='/app/litigation'" style="cursor: pointer;">
+                        <div class="card-body" style="text-align: center;">
+                            <div class="stat-value">...</div>
+                            <div class="stat-label">Активных дел</div>
+                        </div>
+                    </div>
+                    <div class="card card-hover" id="stat-docs" onclick="window.location.href='/app/litigation'" style="cursor: pointer;">
+                        <div class="card-body" style="text-align: center;">
+                            <div class="stat-value">...</div>
+                            <div class="stat-label">Документов</div>
+                        </div>
+                    </div>
+                    <div class="card card-hover" id="stat-review" onclick="window.location.href='/app/contracts'" style="cursor: pointer;">
+                        <div class="card-body" style="text-align: center;">
+                            <div class="stat-value">...</div>
+                            <div class="stat-label">На согласовании</div>
+                        </div>
+                    </div>
+                    <div class="card card-hover" id="stat-overdue" onclick="window.location.href='/app/litigation'" style="cursor: pointer;">
+                        <div class="card-body" style="text-align: center;">
+                            <div class="stat-value">...</div>
+                            <div class="stat-label">Просрочено</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content sections -->
+                <div class="sections">
+                    <div class="card" style="margin-bottom: var(--space-lg);">
+                        <div class="card-header">
+                            <span class="card-header-title">&#128203; Последние дела</span>
+                            <div class="card-header-actions">
+                                <button class="btn btn-sm" onclick="window.location.href='/app/litigation'">Смотреть все &rarr;</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="recent-cases" class="data-list">
+                                <p class="loading">Загрузка...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-header-title">&#129302; AI-агенты</span>
+                            <div class="card-header-actions">
+                                <span class="badge badge-test">ТЕСТ</span>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="agent-list">
+                                <div class="agent-item" data-href="/app/litigation">
+                                    <span class="status-dot status-dot-active"></span>
+                                    <strong>Судебный юрист</strong>
+                                    <span>Иски, претензии, жалобы, ходатайства</span>
+                                    <a href="/app/litigation" class="btn btn-sm">Чат &rarr;</a>
+                                </div>
+                                <div class="agent-item" data-href="/app/contracts">
+                                    <span class="status-dot status-dot-open"></span>
+                                    <strong>Договорник</strong>
+                                    <span>Договоры, допсоглашения, риски</span>
+                                </div>
+                                <div class="agent-item" data-href="/app/general">
+                                    <span class="status-dot status-dot-open"></span>
+                                    <strong>Общий отдел</strong>
+                                    <span>Доверенности, нотариат, НПА</span>
+                                </div>
+                                <div class="agent-item" data-href="/app/legal-opinions">
+                                    <span class="status-dot status-dot-pending"></span>
+                                    <strong>LegalOpinion</strong>
+                                    <span>Юридические заключения</span>
+                                    <span class="badge badge-test badge-sm">ТЕСТ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data table section -->
+                <div class="card" style="margin-top: var(--space-lg);">
+                    <div class="card-header">
+                        <span class="card-header-title">&#128202; Cтатистика по делам</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-filters">
+                            <div class="table-filter">
+                                <label>Статус:</label>
+                                <select id="case-status-filter" onchange="loadCasesTable()">
+                                    <option>Все</option>
+                                    <option>Открыто</option>
+                                    <option>В работе</option>
+                                    <option>Закрыто</option>
+                                </select>
+                            </div>
+                            <div class="table-filter">
+                                <label>Тип:</label>
+                                <select id="case-type-filter" onchange="loadCasesTable()">
+                                    <option>Все</option>
+                                    <option>Арбитраж</option>
+                                    <option>Гражданское</option>
+                                    <option>Административное</option>
+                                </select>
+                            </div>
+                            <div class="table-filter-search">
+                                <span class="search-icon">&#128269;</span>
+                                <input type="text" placeholder="Поиск..." class="form-input-sm">
+                            </div>
+                        </div>
+                        <div class="data-table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Дело</th>
+                                        <th>Статус</th>
+                                        <th>Тип</th>
+                                        <th>Дата</th>
+                                        <th class="cell-right">Сумма</th>
+                                        <th class="cell-action"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cases-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-pagination">
+                            <span class="table-pagination-info" id="pagination-info">Загрузка...</span>
+                            <div class="table-pagination-pages" id="pagination-pages"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cases tab placeholder -->
+            <div class="panel-body" data-tab-content="cases-list" style="display: none;">
+                <div class="panel-empty">
+                    <div class="panel-empty-icon">&#128203;</div>
+                    <div class="panel-empty-text">Список дел загружается...</div>
+                </div>
+            </div>
+
+            <!-- Resize handle -->
+            <div class="panel-resize-handle" data-resize-target="right"></div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="panel" data-panel-id="details" data-default-width="320" style="width: 320px; flex: none;">
+            <div class="panel-header">
+                <span class="panel-header-title">Детали</span>
+                <div class="panel-header-actions">
+                    <button class="panel-header-btn" title="Close" data-action="collapse-panel">&times;</button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="card card-flat" style="margin-bottom: var(--space-md);">
+                    <div class="card-body" style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: var(--space-sm);">&#128203;</div>
+                        <h3 style="margin-bottom: var(--space-xs);">Дело не выбрано</h3>
+                        <p class="card-header-subtitle">Выберите дело из списка, чтобы увидеть детали</p>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-section-title">Быстрые действия</div>
+                    <div class="panel-section-item">
+                        <span class="item-icon">&#10133;</span>
+                        <span>Новое дело</span>
+                    </div>
+                    <div class="panel-section-item">
+                        <span class="item-icon">&#128196;</span>
+                        <span>Создать документ</span>
+                    </div>
+                    <div class="panel-section-item">
+                        <span class="item-icon">&#128269;</span>
+                        <span>Поиск в базе знаний</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>{{ app_name }} v{{ app_version }} — Прототип для демонстрации компетенций</p>
+        <p>Станкевич Игорь Валерьевич · 2026</p>
+    </footer>
+
+    <script>
+        // --- API helpers ---
+        const API_CASES = '/api/cases';
+        const API_DOCS = '/api/documents';
+        const STATUS_LABELS = {
+            'open': 'Открыто',
+            'in_progress': 'В работе',
+            'closed': 'Закрыто'
+        };
+        const STATUS_CLASSES = {
+            'open': 'status-dot-open',
+            'in_progress': 'status-dot-in_progress',
+            'closed': 'status-dot-closed'
+        };
+        const TYPE_LABELS = {
+            'litigation': 'Арбитраж',
+            'contracts': 'Договорная',
+            'general': 'Общая'
+        };
+        const TYPE_BADGE_CLASSES = {
+            'litigation': 'badge-info',
+            'contracts': 'badge-warning',
+            'general': 'badge-default'
+        };
+
+        function formatDate(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleDateString('ru-RU');
+        }
+
+        function formatAmount(caseItem) {
+            // No direct amount field, use placeholder logic
+            return '—';
+        }
+
+        function navigateToCase(caseId) {
+            window.location.href = '/app/litigation';
+        }
+
+        // --- Health check (no dedicated card anymore) ---
+        async function checkHealth() {
+            try {
+                const res = await fetch('/health');
+                const data = await res.json();
+                console.log('API health:', data.status);
+            } catch(e) {
+                console.warn('API health check failed');
+            }
+        }
+
+        // --- Stats cards ---
+        async function loadStats() {
+            let openCases = 0, inProgressCases = 0;
+            let totalDocs = 0, reviewDocs = 0;
+
+            try {
+                const allRes = await fetch(API_CASES + '?limit=200');
+                const allData = await allRes.json();
+                const items = allData.items || [];
+                openCases = items.filter(c => c.status === 'open').length;
+                inProgressCases = items.filter(c => c.status === 'in_progress').length;
+            } catch(e) {
+                // keep defaults
+            }
+
+            try {
+                const docsRes = await fetch(API_DOCS + '?limit=1');
+                const docsData = await docsRes.json();
+                totalDocs = docsData.total || 0;
+
+                // Fetch docs for review count
+                const allDocsRes = await fetch(API_DOCS + '?limit=200');
+                const allDocsData = await allDocsRes.json();
+                const docItems = allDocsData.items || [];
+                reviewDocs = docItems.filter(d => d.status === 'review').length;
+                totalDocs = allDocsData.total || docItems.length;
+            } catch(e) {
+                // keep defaults
+            }
+
+            document.getElementById('stat-cases').querySelector('.stat-value').textContent = openCases + inProgressCases;
+            document.getElementById('stat-docs').querySelector('.stat-value').textContent = totalDocs;
+            document.getElementById('stat-review').querySelector('.stat-value').textContent = reviewDocs;
+            document.getElementById('stat-overdue').querySelector('.stat-value').textContent = '0';
+        }
+
+        // --- Recent cases list ---
+        async function loadRecentCases() {
+            try {
+                const res = await fetch(API_CASES + '?limit=5');
+                const data = await res.json();
+                const list = document.getElementById('recent-cases');
+                const items = data.items || [];
+                if (items.length === 0) {
+                    list.innerHTML = '<p class="empty">Нет дел</p>';
+                } else {
+                    list.innerHTML = items.map(c => `
+                        <div class="data-item" style="cursor:pointer;" onclick="navigateToCase(${c.id})">
+                            <span class="item-title">${c.title}</span>
+                            <span class="item-meta">${STATUS_LABELS[c.status] || c.status} · ${TYPE_LABELS[c.case_type] || c.case_type}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {
+                document.getElementById('recent-cases').innerHTML = '<p class="error">Ошибка загрузки</p>';
+            }
+        }
+
+        // --- Cases table ---
+        async function loadCasesTable() {
+            const tbody = document.getElementById('cases-table-body');
+            const paginationInfo = document.getElementById('pagination-info');
+            const paginationPages = document.getElementById('pagination-pages');
+
+            try {
+                const res = await fetch(API_CASES + '?limit=20');
+                const data = await res.json();
+                const items = data.items || [];
+                const total = data.total || items.length;
+
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty" style="text-align:center;">Нет дел</td></tr>';
+                } else {
+                    tbody.innerHTML = items.map(c => {
+                        const statusClass = STATUS_CLASSES[c.status] || 'status-dot-open';
+                        const statusLabel = STATUS_LABELS[c.status] || c.status;
+                        const typeBadge = TYPE_BADGE_CLASSES[c.case_type] || 'badge-default';
+                        const typeLabel = TYPE_LABELS[c.case_type] || c.case_type;
+                        const date = formatDate(c.updated_at || c.created_at);
+                        const amount = formatAmount(c);
+                        return `
+                            <tr style="cursor:pointer;" onclick="navigateToCase(${c.id})">
+                                <td>${c.title || c.case_number || '—'}</td>
+                                <td><span class="status-text"><span class="status-dot ${statusClass}"></span> ${statusLabel}</span></td>
+                                <td><span class="badge ${typeBadge} badge-sm">${typeLabel}</span></td>
+                                <td class="cell-muted">${date}</td>
+                                <td class="cell-right">${amount}</td>
+                                <td class="cell-action"><button class="table-row-action" onclick="event.stopPropagation(); navigateToCase(${c.id})">&#8942;</button></td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                paginationInfo.textContent = 'Показано ' + items.length + ' из ' + total + ' дел';
+
+                // Pagination pages
+                const totalPages = Math.max(1, Math.ceil(total / 20));
+                const currentPage = Math.floor((data.skip || 0) / 20) + 1;
+                let pagesHtml = '<button class="table-pagination-btn" disabled>&laquo;</button>';
+                for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+                    pagesHtml += '<button class="table-pagination-btn' + (i === currentPage ? ' active' : '') + '">' + i + '</button>';
+                }
+                pagesHtml += '<button class="table-pagination-btn">&raquo;</button>';
+                paginationPages.innerHTML = pagesHtml;
+
+            } catch(e) {
+                tbody.innerHTML = '<tr><td colspan="6" class="error" style="text-align:center;">Ошибка загрузки</td></tr>';
+                paginationInfo.textContent = 'Ошибка загрузки';
+            }
+        }
+
+        // --- Sidebar tree ---
+        async function loadSidebarTree() {
+            const container = document.getElementById('sidebar-tree');
+
+            try {
+                const res = await fetch(API_CASES + '?limit=200');
+                const data = await res.json();
+                const items = data.items || [];
+
+                if (items.length === 0) {
+                    container.innerHTML = '<p class="empty">Нет дел</p>';
+                    return;
+                }
+
+                // Group by case_type
+                const groups = {};
+                items.forEach(c => {
+                    const type = c.case_type || 'other';
+                    if (!groups[type]) groups[type] = [];
+                    groups[type].push(c);
+                });
+
+                const typeTreeLabels = {
+                    'litigation': 'Арбитражные дела',
+                    'contracts': 'Договорная работа',
+                    'general': 'Общие дела'
+                };
+
+                const typeIcons = {
+                    'litigation': '&#128203;',
+                    'contracts': '&#128196;',
+                    'general': '&#128203;'
+                };
+
+                let html = '';
+                let isFirst = true;
+                for (const [type, cases] of Object.entries(groups)) {
+                    const label = typeTreeLabels[type] || type;
+                    const icon = typeIcons[type] || '&#128203;';
+                    html += '<div class="tree-item">';
+                    html += '    <div class="tree-item-content' + (isFirst ? ' tree-selected' : '') + '">';
+                    html += '        <span class="tree-toggle' + (isFirst ? ' expanded' : '') + '">&rsaquo;</span>';
+                    html += '        <span class="tree-icon tree-icon-folder">' + icon + '</span>';
+                    html += '        <span class="tree-label">' + label + '</span>';
+                    html += '        <span class="tree-meta badge badge-sm badge-default">' + cases.length + '</span>';
+                    html += '    </div>';
+                    html += '    <ul class="tree-children' + (isFirst ? '' : ' collapsed') + '">';
+                    cases.forEach(c => {
+                        html += '        <li class="tree-item">';
+                        html += '            <div class="tree-item-content" style="cursor:pointer;" onclick="navigateToCase(' + c.id + ')">';
+                        html += '                <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>';
+                        html += '                <span class="tree-icon tree-icon-case">&#128203;</span>';
+                        html += '                <span class="tree-label">' + (c.title || c.case_number || 'Дело №' + c.id) + '</span>';
+                        html += '            </div>';
+                        html += '        </li>';
+                    });
+                    html += '    </ul>';
+                    html += '</div>';
+                    isFirst = false;
+                }
+
+                container.innerHTML = html;
+
+                // Re-bind tree toggle events
+                container.querySelectorAll('.tree-toggle:not(.tree-toggle-hidden)').forEach(function(toggle) {
+                    toggle.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const item = this.closest('.tree-item');
+                        const children = item?.querySelector('.tree-children');
+                        if (children) {
+                            children.classList.toggle('collapsed');
+                            this.classList.toggle('expanded');
+                        }
+                    });
+                });
+
+            } catch(e) {
+                container.innerHTML = '<p class="error">Ошибка загрузки</p>';
+            }
+        }
+
+        // --- Agent card click handler ---
+        function setupAgentClicks() {
+            document.querySelectorAll('.agent-item[data-href]').forEach(function(item) {
+                item.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'A') return; // let links handle themselves
+                    window.location.href = this.dataset.href;
+                });
+                item.style.cursor = 'pointer';
+            });
+        }
+
+        // --- Init ---
+        checkHealth();
+        loadStats();
+        loadRecentCases();
+        loadCasesTable();
+        loadSidebarTree();
+        setupAgentClicks();
+
+        // Demo banner close
+        document.getElementById('banner-close')?.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const banner = document.getElementById('demo-banner');
+            banner.classList.add('hidden');
+        });
+
+        // Omnibox trigger
+        document.getElementById('omnibox-trigger')?.addEventListener('click', function() {
+            if (window.omnibox) window.omnibox.open();
+        });
+    </script>
+</body>
+</html>
+

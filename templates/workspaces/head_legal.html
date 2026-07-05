@@ -1,0 +1,1099 @@
+{% extends "base.html" %}
+{% block title %}Head of Legal — ПравоАгент{% endblock %}
+
+{% block extra_styles %}
+/* KPI Settings modal toggles */
+.kpi-toggle-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+.kpi-toggle-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    transition: background var(--transition-fast);
+    cursor: pointer;
+}
+.kpi-toggle-item:hover {
+    background: var(--color-bg-hover);
+}
+.kpi-toggle-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+.kpi-toggle-label {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text);
+}
+.kpi-toggle-desc {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+/* Load bar animation */
+@keyframes loadBarGrow {
+    from { width: 0%; }
+}
+.load-bar-fill {
+    animation: loadBarGrow 0.6s ease-out forwards;
+}
+
+/* Stat shimmer loading */
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+.stat-shimmer {
+    background: linear-gradient(90deg, var(--color-bg-hover) 25%, var(--color-bg) 50%, var(--color-bg-hover) 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+.stat-shimmer-value {
+    height: 32px;
+    width: 60%;
+    margin: 0 auto var(--space-xs);
+}
+.stat-shimmer-label {
+    height: 14px;
+    width: 80%;
+    margin: 0 auto;
+}
+
+/* Refresh indicator */
+.refresh-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    transition: opacity var(--transition-fast);
+}
+.refresh-indicator.spinning {
+    color: var(--color-primary);
+}
+.refresh-indicator .spin {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Efficiency color coding */
+.efficiency-high { color: var(--color-success); }
+.efficiency-mid { color: var(--color-warning); }
+.efficiency-low { color: var(--color-danger); }
+
+/* Metric trend */
+.trend-up { color: var(--color-success); }
+.trend-down { color: var(--color-danger); }
+.trend-neutral { color: var(--color-text-muted); }
+
+/* KPI config modal */
+.kpi-metric-target-input {
+    width: 70px;
+    padding: 2px 6px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    text-align: center;
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+.kpi-metric-target-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+.kpi-delete-btn {
+    background: none;
+    border: none;
+    color: var(--color-danger);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 4px;
+    opacity: 0.5;
+    transition: opacity var(--transition-fast);
+}
+.kpi-delete-btn:hover {
+    opacity: 1;
+}
+.kpi-comparison-badge {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    background: var(--color-bg-hover);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+}
+.target-status-ok {
+    color: var(--color-success);
+}
+.target-status-fail {
+    color: var(--color-danger);
+}
+{% endblock %}
+
+{% block activity_bar %}
+<div class="panel-activity-bar">
+    <button class="activity-bar-item active" data-panel="explorer" title="Дашборд (Ctrl+B)">
+        &#128202;
+    </button>
+    <button class="activity-bar-item" data-panel="team-panel" title="Команда">
+        &#128101;
+    </button>
+    <button class="activity-bar-item" data-panel="analytics" title="Аналитика">
+        &#128200;
+    </button>
+    <button class="activity-bar-item" data-panel="kpi-settings" title="Настройки KPI">
+        &#9881;
+    </button>
+    <button class="activity-bar-item" data-action="toggle-chat" title="Чат с AI-агентом">
+        &#128172;
+    </button>
+    <div class="activity-bar-bottom">
+        <button class="activity-bar-item" onclick="document.getElementById('git-modal').classList.add('open')" title="Git-интеграция">
+            &#128190;
+        </button>
+        <button class="activity-bar-item" onclick="document.getElementById('agents-modal').classList.add('open')" title="AI-агенты">
+            &#129302;
+        </button>
+        <button class="activity-bar-item" data-action="toggle-sidebar" title="Toggle Sidebar">
+            &#9776;
+        </button>
+        <button class="activity-bar-item" id="omnibox-trigger" onclick="window.omnibox.open()" title="Command Palette (Ctrl+K)">
+            &#8984;
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar_panel %}
+<div class="panel" data-panel-id="explorer" data-default-width="280">
+    <div class="panel-header">
+        <span class="panel-header-title">Команда</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Collapse" data-action="collapse-panel">&#9660;</button>
+            <button class="panel-header-btn" title="More">&#8942;</button>
+        </div>
+    </div>
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="team-members">
+            <span>Команда</span>
+        </div>
+        <div class="panel-tab" data-tab-target="departments">
+            <span>Отделы</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="workload">
+            <span>Загрузка</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <div class="panel-section" data-tab-content="team-members" style="padding: var(--space-sm);">
+            <div class="workspace-sidebar-header">
+                <span class="workspace-sidebar-title">Члены команды</span>
+                <button class="workspace-sidebar-action" title="Добавить">+</button>
+            </div>
+            <div class="tree tree-scrollable" id="team-members-list">
+                {% if team_members %}
+                    {% for member in team_members %}
+                    <div class="tree-item">
+                        <div class="tree-item-content">
+                            <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                            <span class="tree-icon tree-icon-case">&#128101;</span>
+                            <span class="tree-label">{{ member.username }}</span>
+                            <span class="tree-meta badge badge-sm badge-default">{{ member.role }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="panel-empty">
+                        <div class="panel-empty-icon">&#128101;</div>
+                        <div class="panel-empty-text">Нет членов команды</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="departments" style="display: none; padding: var(--space-sm);">
+            <div class="tree tree-scrollable">
+                <div class="tree-item">
+                    <div class="tree-item-content">
+                        <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                        <span class="tree-icon tree-icon-folder">&#128193;</span>
+                        <span class="tree-label">Судебный отдел</span>
+                        <span class="tree-meta badge badge-sm badge-default">3</span>
+                    </div>
+                </div>
+                <div class="tree-item">
+                    <div class="tree-item-content">
+                        <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                        <span class="tree-icon tree-icon-folder">&#128193;</span>
+                        <span class="tree-label">Договорной отдел</span>
+                        <span class="tree-meta badge badge-sm badge-default">2</span>
+                    </div>
+                </div>
+                <div class="tree-item">
+                    <div class="tree-item-content">
+                        <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                        <span class="tree-icon tree-icon-folder">&#128193;</span>
+                        <span class="tree-label">Общий отдел</span>
+                        <span class="tree-meta badge badge-sm badge-default">2</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="workload" style="display: none; padding: var(--space-sm);">
+            <div class="panel-empty">
+                <div class="panel-empty-icon">&#128202;</div>
+                <div class="panel-empty-text">Данные о загрузке</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block main_panel %}
+<div class="panel" data-panel-id="main" style="border-right: none;">
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="dashboard-view">
+            <span>Дашборд</span>
+        </div>
+        <div class="panel-tab" data-tab-target="analytics-view">
+            <span>Аналитика</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="reports-view">
+            <span>Отчёты</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="dashboard-view">
+        <div class="workspace-toolbar">
+            <span class="workspace-toolbar-title">KPI Dashboard — Head of Legal</span>
+            <div class="workspace-toolbar-actions">
+                <span class="refresh-indicator" id="refresh-indicator">
+                    <span class="spin" style="display:none;">&#8635;</span>
+                    <span id="refresh-time">Обновлено: --:--</span>
+                </span>
+                <button class="btn btn-sm" id="btn-refresh" title="Обновить">&#8635; Обновить</button>
+                <button class="btn btn-sm btn-secondary" id="btn-kpi-settings">&#9881; Настроить KPI</button>
+            </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="stats-grid" id="kpi-stats-grid" style="margin-top: var(--space-md);">
+            <!-- Efficiency -->
+            <div class="card card-hover" style="text-align: center;" data-kpi="efficiency">
+                <div class="card-body">
+                    <div class="stat-value" id="kpi-efficiency" style="color: var(--color-primary);">
+                        <div class="stat-shimmer stat-shimmer-value"></div>
+                    </div>
+                    <div class="stat-label">Эффективность</div>
+                    <div class="text-xs text-muted" style="margin-top: var(--space-xs);">
+                        <span id="kpi-efficiency-detail">загрузка...</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Lawyers count -->
+            <div class="card card-hover" style="text-align: center;" data-kpi="users">
+                <div class="card-body">
+                    <div class="stat-value" id="kpi-users">
+                        <div class="stat-shimmer stat-shimmer-value"></div>
+                    </div>
+                    <div class="stat-label">Юристов</div>
+                    <div class="text-xs text-muted" style="margin-top: var(--space-xs);">
+                        Загруженность: <span id="kpi-load-pct">--</span>%
+                    </div>
+                </div>
+            </div>
+            <!-- Avg duration -->
+            <div class="card card-hover" style="text-align: center;" data-kpi="duration">
+                <div class="card-body">
+                    <div class="stat-value" id="kpi-duration">
+                        <div class="stat-shimmer stat-shimmer-value"></div>
+                    </div>
+                    <div class="stat-label">Средний срок дела</div>
+                    <div class="text-xs text-muted" style="margin-top: var(--space-xs);">от открытия до закрытия</div>
+                </div>
+            </div>
+            <!-- Total documents -->
+            <div class="card card-hover" style="text-align: center;" data-kpi="documents">
+                <div class="card-body">
+                    <div class="stat-value" id="kpi-documents">
+                        <div class="stat-shimmer stat-shimmer-value"></div>
+                    </div>
+                    <div class="stat-label">Заключений / док-в</div>
+                    <div class="text-xs text-muted" style="margin-top: var(--space-xs);">всего создано</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case status bars -->
+        <div class="card" style="margin-top: var(--space-md);" data-kpi="case-chart">
+            <div class="card-header">
+                <span class="card-header-title">&#128200; Статистика по делам</span>
+            </div>
+            <div class="card-body" id="kpi-case-chart">
+                <div class="loading">Загрузка статистики...</div>
+            </div>
+        </div>
+
+        <!-- Team workload table -->
+        <div class="card" style="margin-top: var(--space-md);" data-kpi="team-table">
+            <div class="card-header">
+                <span class="card-header-title">&#128101; Загрузка юристов</span>
+                <div class="card-header-actions">
+                    <span class="badge badge-test badge-sm" id="team-count-badge">0</span>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Юрист</th>
+                                <th>Роль</th>
+                                <th>Дела</th>
+                                <th>Загрузка</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kpi-team-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                                    Загрузка данных...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="analytics-view" style="display: none;">
+        <div class="panel-empty">
+            <div class="panel-empty-icon">&#128200;</div>
+            <div class="panel-empty-text">Полная аналитика (в разработке)</div>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="reports-view" style="display: none;">
+        <div class="panel-empty">
+            <div class="panel-empty-icon">&#128202;</div>
+            <div class="panel-empty-text">Отчёты (в разработке)</div>
+        </div>
+    </div>
+
+    <div class="panel-resize-handle" data-resize-target="right"></div>
+</div>
+{% endblock %}
+
+{% block right_panel %}
+<div class="panel" data-panel-id="team-panel" data-default-width="320" style="width: 320px; flex: none;">
+    <div class="panel-header">
+        <span class="panel-header-title">KPI — Детали</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Close" data-action="collapse-panel">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <!-- KPI Details Section (shown by default) -->
+        <div id="kpi-details-content" class="chat-widget-panel-section" style="display: block;">
+            <div class="panel-section" style="padding: var(--space-sm);">
+                <div class="panel-section-title">Ключевые показатели</div>
+                <div class="panel-section-item">
+                    <span class="item-icon">&#128200;</span>
+                    <span>Эффективность: <strong id="detail-efficiency">--</strong>%</span>
+                </div>
+                <div class="panel-section-item">
+                    <span class="item-icon">&#128101;</span>
+                    <span>Всего юристов: <strong id="detail-users">--</strong></span>
+                </div>
+                <div class="panel-section-item">
+                    <span class="item-icon">&#128203;</span>
+                    <span>Активных дел: <strong id="detail-active-cases">--</strong></span>
+                </div>
+                <div class="panel-section-item">
+                    <span class="item-icon">&#128196;</span>
+                    <span>Документов: <strong id="detail-documents">--</strong></span>
+                </div>
+                <div class="panel-section-item">
+                    <span class="item-icon">&#128202;</span>
+                    <span>Загрузка: <strong id="detail-load">--</strong>%</span>
+                </div>
+                <div class="panel-section-item">
+                    <span class="item-icon">&#128197;</span>
+                    <span>Средний срок: <strong id="detail-duration">--</strong> дн.</span>
+                </div>
+            </div>
+            <div class="panel-section" style="padding: var(--space-sm);">
+                <div class="panel-section-title">Статус дел</div>
+                <div class="panel-section-item">
+                    <span class="item-icon" style="color: var(--color-primary);">&#11044;</span>
+                    <span>Открыто: <strong id="detail-open">--</strong></span>
+                </div>
+                <div class="panel-section-item">
+                    <span class="item-icon" style="color: var(--color-info);">&#11044;</span>
+                    <span>В работе: <strong id="detail-in-progress">--</strong></span>
+                </div>
+                <div class="panel-section-item">
+                    <span class="item-icon" style="color: var(--color-success);">&#11044;</span>
+                    <span>Закрыто: <strong id="detail-closed">--</strong></span>
+                </div>
+            </div>
+        </div>
+        <!-- Chat Section (hidden by default) -->
+        <div id="chat-content" class="chat-widget-panel-section" style="display: none; height: 100%;">
+            <div class="chat-widget" data-agent-type="head_legal" data-title="AI-агент: Head of Legal" data-auto-init></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- KPI Settings Modal -->
+<div class="modal-overlay" id="kpi-settings-modal">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <span class="modal-header-title">&#9881; Настройка KPI</span>
+            <button class="modal-close" data-modal-close>&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="text-sm text-muted" style="margin-bottom: var(--space-md);">
+                Выберите метрики, которые будут отображаться на дашборде. Целевые значения сохраняются автоматически.
+            </p>
+            <div class="kpi-toggle-list" id="kpi-toggles">
+                <div class="text-sm text-muted" id="kpi-config-loading">Загрузка настроек...</div>
+            </div>
+            <div style="margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1px solid var(--color-border);">
+                <button class="btn btn-sm" id="btn-add-custom-metric" style="width: 100%;">+ Добавить свою метрику</button>
+                <div id="custom-metric-form" style="display: none; margin-top: var(--space-sm); padding: var(--space-md); background: var(--color-bg); border-radius: var(--radius-md);">
+                    <div class="form-group" style="margin-bottom: var(--space-sm);">
+                        <label class="form-label" style="font-size: var(--font-size-sm);">Название метрики</label>
+                        <input type="text" class="form-input" id="custom-metric-label" placeholder="Например: Стоимость LLM на юриста" style="width: 100%;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: var(--space-sm);">
+                        <label class="form-label" style="font-size: var(--font-size-sm);">Описание</label>
+                        <input type="text" class="form-input" id="custom-metric-desc" placeholder="Краткое описание метрики" style="width: 100%;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: var(--space-sm);">
+                        <label class="form-label" style="font-size: var(--font-size-sm);">Целевое значение</label>
+                        <input type="number" class="form-input" id="custom-metric-target" placeholder="Необязательно" style="width: 100%;">
+                    </div>
+                    <div style="display: flex; gap: var(--space-sm); justify-content: flex-end;">
+                        <button class="btn btn-sm btn-secondary" id="btn-cancel-custom-metric">Отмена</button>
+                        <button class="btn btn-sm" id="btn-save-custom-metric">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" data-modal-close>Закрыть</button>
+            <button class="btn" id="kpi-reset-defaults">Сбросить на defaults</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    'use strict';
+
+    // ===== State =====
+    let refreshInterval = null;
+    let kpiData = null;
+    let kpiConfig = null;  // server-side config
+    const COMPARISON_LABELS = { 'gte': '\u2265', 'lte': '\u2264', 'eq': '=' };
+
+    // ===== Format helpers =====
+    function formatTime(date) {
+        return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getLoadColor(pct) {
+        if (pct >= 80) return 'var(--color-danger)';
+        if (pct >= 50) return 'var(--color-warning)';
+        return 'var(--color-success)';
+    }
+
+    function getEfficiencyClass(val) {
+        if (val >= 75) return 'efficiency-high';
+        if (val >= 50) return 'efficiency-mid';
+        return 'efficiency-low';
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // ===== KPI Config (server-side) =====
+    function fetchKpiConfig() {
+        return fetch('/api/kpi/config', {
+            headers: { 'Accept': 'application/json' },
+        })
+        .then(function(resp) {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        });
+    }
+
+    function renderKpiConfigModal(config) {
+        var container = document.getElementById('kpi-toggles');
+        if (!container) return;
+        kpiConfig = config;
+
+        if (!config || config.length === 0) {
+            container.innerHTML = '<div class="text-sm text-muted">Нет настроек KPI</div>';
+            return;
+        }
+
+        var html = '';
+        config.forEach(function(m) {
+            var compLabel = COMPARISON_LABELS[m.comparison] || m.comparison;
+            var targetHtml = '';
+            if (m.target_value !== null && m.target_value !== undefined) {
+                targetHtml = '<span class="kpi-comparison-badge">' + compLabel + '</span> ' +
+                    '<input type="number" class="kpi-metric-target-input" ' +
+                        'data-config-id="' + m.id + '" ' +
+                        'value="' + m.target_value + '" ' +
+                        'step="any">';
+            } else {
+                targetHtml = '<span class="text-xs text-muted">без цели</span>';
+            }
+
+            var deleteBtn = '';
+            if (m.is_custom) {
+                deleteBtn = '<button class="kpi-delete-btn" data-config-id="' + m.id + '" title="Удалить метрику">&times;</button>';
+            }
+
+            html +=
+                '<div class="kpi-toggle-item" data-config-id="' + m.id + '">' +
+                    '<input type="checkbox" data-config-id="' + m.id + '" ' + (m.is_enabled ? 'checked' : '') + '>' +
+                    '<div style="flex: 1; min-width: 0;">' +
+                        '<div class="kpi-toggle-label">' + escapeHtml(m.metric_label) + '</div>' +
+                        '<div class="kpi-toggle-desc">' + escapeHtml(m.metric_description) + '</div>' +
+                    '</div>' +
+                    '<div style="display: flex; align-items: center; gap: var(--space-xs); flex-shrink: 0;">' +
+                        targetHtml +
+                        deleteBtn +
+                    '</div>' +
+                '</div>';
+        });
+        container.innerHTML = html;
+
+        // Bind toggle events
+        container.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                var configId = parseInt(this.dataset.configId);
+                var enabled = this.checked;
+                fetch('/api/kpi/config/metric/' + configId + '/toggle', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ is_enabled: enabled }),
+                })
+                .then(function(r) {
+                    if (!r.ok) {
+                        this.checked = !enabled;
+                        console.error('Toggle failed');
+                    }
+                    fetchKpiConfig().then(function(cfg) {
+                        kpiConfig = cfg;
+                        applyKpiVisibility(cfg);
+                    }).catch(function(e) { console.error('Refresh config after toggle:', e); });
+                }.bind(this))
+                .catch(function(err) {
+                    this.checked = !enabled;
+                    console.error('Toggle error:', err);
+                }.bind(this));
+            });
+        });
+
+        // Bind target value inputs
+        container.querySelectorAll('.kpi-metric-target-input').forEach(function(input) {
+            var debounceTimer;
+            input.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function() {
+                    saveAllTargets();
+                }, 800);
+            });
+        });
+
+        // Bind delete buttons
+        container.querySelectorAll('.kpi-delete-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var configId = parseInt(this.dataset.configId);
+                if (!confirm('Удалить эту метрику?')) return;
+                fetch('/api/kpi/config/metric/' + configId, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json' },
+                })
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return fetchKpiConfig();
+                })
+                .then(function(cfg) {
+                    kpiConfig = cfg;
+                    renderKpiConfigModal(cfg);
+                    applyKpiVisibility(cfg);
+                })
+                .catch(function(err) {
+                    console.error('Delete error:', err);
+                    alert('Ошибка при удалении метрики');
+                });
+            });
+        });
+    }
+
+    function saveAllTargets() {
+        if (!kpiConfig) return;
+        var updatedMetrics = kpiConfig.map(function(m) {
+            var input = document.querySelector('.kpi-metric-target-input[data-config-id="' + m.id + '"]');
+            var targetVal = m.target_value;
+            if (input) {
+                var val = parseFloat(input.value);
+                targetVal = isNaN(val) ? null : val;
+            }
+            return {
+                metric_key: m.metric_key,
+                metric_label: m.metric_label,
+                metric_description: m.metric_description,
+                target_value: targetVal,
+                comparison: m.comparison,
+                is_custom: m.is_custom,
+                formula: m.formula,
+                is_enabled: m.is_enabled,
+                sort_order: m.sort_order,
+            };
+        });
+
+        fetch('/api/kpi/config', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ metrics: updatedMetrics }),
+        })
+        .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(function(cfg) {
+            kpiConfig = cfg;
+        })
+        .catch(function(err) {
+            console.error('Save targets error:', err);
+        });
+    }
+
+    function applyKpiVisibility(config) {
+        var enabledKeys = {};
+        config.forEach(function(m) {
+            if (m.is_enabled) {
+                enabledKeys[m.metric_key] = true;
+            }
+        });
+        document.querySelectorAll('[data-kpi]').forEach(function(el) {
+            var key = el.dataset.kpi;
+            el.style.display = enabledKeys[key] ? '' : 'none';
+        });
+    }
+
+    function renderTargetStatus(data) {
+        if (!kpiConfig) return;
+        kpiConfig.forEach(function(m) {
+            if (m.target_value === null || m.target_value === undefined) return;
+            var card = document.querySelector('[data-kpi="' + m.metric_key + '"]');
+            if (!card) return;
+
+            var valueEl = card.querySelector('.stat-value');
+            if (!valueEl) return;
+
+            var rawText = valueEl.textContent.trim();
+            var numVal = parseFloat(rawText);
+            if (isNaN(numVal)) return;
+
+            var met = false;
+            if (m.comparison === 'gte') {
+                met = numVal >= m.target_value;
+            } else if (m.comparison === 'lte') {
+                met = numVal <= m.target_value;
+            } else {
+                met = Math.abs(numVal - m.target_value) < 0.01;
+            }
+
+            var statusEl = card.querySelector('.target-status-indicator');
+            if (!statusEl) {
+                statusEl = document.createElement('span');
+                statusEl.className = 'target-status-indicator';
+                statusEl.style.marginLeft = '6px';
+                statusEl.style.fontSize = '14px';
+                valueEl.appendChild(statusEl);
+            }
+            statusEl.textContent = met ? '\u2705' : '\u274C';
+        });
+    }
+
+    // ===== Render functions =====
+    function renderStats(data) {
+        var effEl = document.getElementById('kpi-efficiency');
+        if (effEl) {
+            effEl.textContent = data.efficiency !== null && data.efficiency !== undefined ? data.efficiency + '%' : 'N/A';
+            effEl.className = 'stat-value ' + getEfficiencyClass(data.efficiency || 0);
+        }
+        var effDetail = document.getElementById('kpi-efficiency-detail');
+        if (effDetail) effDetail.textContent = data.closed_cases + ' закрыто / ' + data.total_cases + ' всего';
+
+        var usersEl = document.getElementById('kpi-users');
+        if (usersEl) usersEl.textContent = data.total_users;
+        var loadEl = document.getElementById('kpi-load-pct');
+        if (loadEl) loadEl.textContent = data.load_pct;
+
+        var durEl = document.getElementById('kpi-duration');
+        if (durEl) durEl.textContent = data.avg_duration_days > 0 ? data.avg_duration_days + ' дн.' : '--';
+
+        var docsEl = document.getElementById('kpi-documents');
+        if (docsEl) docsEl.textContent = data.total_documents;
+
+        setText('detail-efficiency', data.efficiency !== null ? data.efficiency : '--');
+        setText('detail-users', data.total_users);
+        setText('detail-active-cases', (data.open_cases + data.in_progress_cases));
+        setText('detail-documents', data.total_documents);
+        setText('detail-load', data.load_pct);
+        setText('detail-duration', data.avg_duration_days > 0 ? data.avg_duration_days : '--');
+        setText('detail-open', data.open_cases);
+        setText('detail-in-progress', data.in_progress_cases);
+        setText('detail-closed', data.closed_cases);
+
+        renderTargetStatus(data);
+    }
+
+    function setText(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+
+    function renderCaseChart(data) {
+        var container = document.getElementById('kpi-case-chart');
+        if (!container) return;
+
+        var total = data.total_cases || 1;
+        var openH = Math.max(8, Math.round((data.open_cases / total) * 140));
+        var inProgH = Math.max(8, Math.round((data.in_progress_cases / total) * 140));
+        var closedH = Math.max(8, Math.round((data.closed_cases / total) * 140));
+
+        container.innerHTML =
+            '<div style="display: flex; gap: var(--space-lg); align-items: flex-end; height: 160px; padding: var(--space-sm) 0;">' +
+                '<div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--space-xs);">' +
+                    '<span class="text-xs font-bold">' + data.open_cases + '</span>' +
+                    '<div style="width: 100%; height: ' + openH + 'px; background: var(--color-primary); border-radius: var(--radius-sm) var(--radius-sm) 0 0; min-height: 8px; transition: height 0.3s;" title="Открыто: ' + data.open_cases + '"></div>' +
+                    '<span class="text-xs text-muted">Открыто</span>' +
+                '</div>' +
+                '<div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--space-xs);">' +
+                    '<span class="text-xs font-bold">' + data.in_progress_cases + '</span>' +
+                    '<div style="width: 100%; height: ' + inProgH + 'px; background: var(--color-info); border-radius: var(--radius-sm) var(--radius-sm) 0 0; min-height: 8px; transition: height 0.3s;" title="В работе: ' + data.in_progress_cases + '"></div>' +
+                    '<span class="text-xs text-muted">В работе</span>' +
+                '</div>' +
+                '<div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--space-xs);">' +
+                    '<span class="text-xs font-bold">' + data.closed_cases + '</span>' +
+                    '<div style="width: 100%; height: ' + closedH + 'px; background: var(--color-success); border-radius: var(--radius-sm) var(--radius-sm) 0 0; min-height: 8px; transition: height 0.3s;" title="Закрыто: ' + data.closed_cases + '"></div>' +
+                    '<span class="text-xs text-muted">Закрыто</span>' +
+                '</div>' +
+            '</div>';
+    }
+
+    function renderTeamTable(data) {
+        var tbody = document.getElementById('kpi-team-table-body');
+        if (!tbody) return;
+
+        var badge = document.getElementById('team-count-badge');
+        if (badge) badge.textContent = data.team_members.length;
+
+        if (!data.team_members || data.team_members.length === 0) {
+            tbody.innerHTML =
+                '<tr><td colspan="5" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">' +
+                    'Нет данных о команде</td></tr>';
+            return;
+        }
+
+        var html = '';
+        data.team_members.forEach(function(m) {
+            var loadColor = getLoadColor(m.load);
+            html +=
+                '<tr>' +
+                    '<td><strong>' + escapeHtml(m.username) + '</strong></td>' +
+                    '<td><span class="badge badge-default badge-sm">' + escapeHtml(m.role) + '</span></td>' +
+                    '<td>' + m.cases + '</td>' +
+                    '<td>' +
+                        '<div style="display: flex; align-items: center; gap: var(--space-sm);">' +
+                            '<div style="flex: 1; height: 6px; background: var(--color-border); border-radius: 3px; max-width: 100px;">' +
+                                '<div class="load-bar-fill" style="width: ' + m.load + '%; height: 100%; background: ' + loadColor + '; border-radius: 3px;"></div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td><span style="color: ' + loadColor + '; font-weight: 600;">' + m.load + '%</span></td>' +
+                '</tr>';
+        });
+        tbody.innerHTML = html;
+    }
+
+    // ===== Fetch dashboard data =====
+    function fetchKpiData() {
+        var indicator = document.getElementById('refresh-indicator');
+        var spin = indicator ? indicator.querySelector('.spin') : null;
+        if (spin) spin.style.display = 'inline-block';
+
+        fetch('/api/kpi/dashboard', {
+            headers: { 'Accept': 'application/json' },
+        })
+        .then(function(resp) {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        })
+        .then(function(data) {
+            kpiData = data;
+            renderStats(data);
+            renderCaseChart(data);
+            renderTeamTable(data);
+            updateRefreshTime();
+            if (spin) spin.style.display = 'none';
+        })
+        .catch(function(err) {
+            console.error('KPI fetch error:', err);
+            document.querySelectorAll('#kpi-stats-grid .stat-value').forEach(function(el) {
+                if (el.closest('[data-kpi]')) {
+                    el.textContent = '!';
+                    el.style.color = 'var(--color-danger)';
+                }
+            });
+            document.getElementById('kpi-case-chart').innerHTML =
+                '<div class="error">&#9888; Ошибка загрузки: ' + escapeHtml(err.message) + '</div>';
+            document.getElementById('kpi-team-table-body').innerHTML =
+                '<tr><td colspan="5" style="text-align: center; padding: var(--space-xl); color: var(--color-danger);">' +
+                    '&#9888; Ошибка загрузки данных</td></tr>';
+            if (spin) spin.style.display = 'none';
+        });
+    }
+
+    function updateRefreshTime() {
+        var el = document.getElementById('refresh-time');
+        if (el) el.textContent = 'Обновлено: ' + formatTime(new Date());
+    }
+
+    function fetchAndApplyKpiConfig() {
+        var container = document.getElementById('kpi-toggles');
+        if (container) {
+            container.innerHTML = '<div class="text-sm text-muted">Загрузка настроек...</div>';
+        }
+        fetchKpiConfig()
+        .then(function(config) {
+            kpiConfig = config;
+            renderKpiConfigModal(config);
+            applyKpiVisibility(config);
+        })
+        .catch(function(err) {
+            console.error('KPI config fetch error:', err);
+            if (container) {
+                container.innerHTML = '<div class="text-sm text-danger">Ошибка загрузки настроек</div>';
+            }
+        });
+    }
+
+    // ===== Modal system =====
+    function openModal(modalId) {
+        var overlay = document.getElementById(modalId);
+        if (!overlay) return;
+        overlay.classList.add('open');
+        document.body.classList.add('modal-open');
+        fetchAndApplyKpiConfig();
+    }
+
+    function closeModal(overlay) {
+        overlay.classList.remove('open');
+        document.body.classList.remove('modal-open');
+    }
+
+    function initModal() {
+        var overlay = document.getElementById('kpi-settings-modal');
+
+        document.getElementById('btn-kpi-settings').addEventListener('click', function() {
+            openModal('kpi-settings-modal');
+        });
+
+        overlay.querySelectorAll('[data-modal-close]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                closeModal(overlay);
+            });
+        });
+
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) closeModal(overlay);
+        });
+
+        document.getElementById('kpi-reset-defaults').addEventListener('click', function() {
+            var defaultMetrics = [
+                { metric_key: 'efficiency', metric_label: 'Эффективность', metric_description: 'Процент выигранных / закрытых дел', target_value: 80, comparison: 'gte', is_custom: false, sort_order: 1 },
+                { metric_key: 'users', metric_label: 'Количество юристов', metric_description: 'Общее число активных юристов в отделе', target_value: null, comparison: 'gte', is_custom: false, sort_order: 2 },
+                { metric_key: 'duration', metric_label: 'Средний срок дела', metric_description: 'Среднее время от открытия до закрытия дела', target_value: 90, comparison: 'lte', is_custom: false, sort_order: 3 },
+                { metric_key: 'documents', metric_label: 'Количество документов', metric_description: 'Общее число созданных заключений и документов', target_value: null, comparison: 'gte', is_custom: false, sort_order: 4 },
+                { metric_key: 'case-chart', metric_label: 'График по делам', metric_description: 'Визуализация статусов дел (открыто / в работе / закрыто)', target_value: null, comparison: 'gte', is_custom: false, sort_order: 5 },
+                { metric_key: 'team-table', metric_label: 'Таблица загрузки', metric_description: 'Детальная таблица загрузки каждого юриста', target_value: null, comparison: 'gte', is_custom: false, sort_order: 6 },
+            ];
+
+            fetch('/api/kpi/config', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ metrics: defaultMetrics }),
+            })
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function(cfg) {
+                renderKpiConfigModal(cfg);
+                applyKpiVisibility(cfg);
+            })
+            .catch(function(err) {
+                console.error('Reset defaults error:', err);
+                alert('Ошибка при сбросе настроек');
+            });
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                closeModal(overlay);
+            }
+        });
+
+        // Custom metric form
+        var addBtn = document.getElementById('btn-add-custom-metric');
+        var form = document.getElementById('custom-metric-form');
+        if (addBtn && form) {
+            addBtn.addEventListener('click', function() {
+                form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            });
+
+            document.getElementById('btn-cancel-custom-metric').addEventListener('click', function() {
+                form.style.display = 'none';
+                document.getElementById('custom-metric-label').value = '';
+                document.getElementById('custom-metric-desc').value = '';
+                document.getElementById('custom-metric-target').value = '';
+            });
+
+            document.getElementById('btn-save-custom-metric').addEventListener('click', function() {
+                var label = document.getElementById('custom-metric-label').value.trim();
+                if (!label) {
+                    alert('Введите название метрики');
+                    return;
+                }
+                var desc = document.getElementById('custom-metric-desc').value.trim();
+                var targetInput = document.getElementById('custom-metric-target').value.trim();
+                var targetVal = targetInput ? parseFloat(targetInput) : null;
+                if (targetInput && isNaN(targetVal)) {
+                    alert('Некорректное целевое значение');
+                    return;
+                }
+
+                fetch('/api/kpi/config/metric', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        metric_label: label,
+                        metric_description: desc,
+                        target_value: targetVal,
+                    }),
+                })
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return fetchKpiConfig();
+                })
+                .then(function(cfg) {
+                    renderKpiConfigModal(cfg);
+                    applyKpiVisibility(cfg);
+                    form.style.display = 'none';
+                    document.getElementById('custom-metric-label').value = '';
+                    document.getElementById('custom-metric-desc').value = '';
+                    document.getElementById('custom-metric-target').value = '';
+                })
+                .catch(function(err) {
+                    console.error('Add custom metric error:', err);
+                    alert('Ошибка при добавлении метрики');
+                });
+            });
+        }
+    }
+
+    // ===== Refresh button =====
+    function initRefreshButton() {
+        document.getElementById('btn-refresh').addEventListener('click', function() {
+            fetchKpiData();
+        });
+    }
+
+    // ===== Chat toggle =====
+    function setupChatToggle() {
+        document.querySelectorAll('[data-action="toggle-chat"]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var panel = document.querySelector('.panel[data-panel-id="team-panel"]');
+                if (!panel) return;
+
+                // Ensure the panel is visible (uncollapse if needed)
+                if (panel.classList.contains('panel-collapsed')) {
+                    panel.classList.remove('panel-collapsed');
+                }
+
+                // Activate the panel via activity bar
+                var actBtn = document.querySelector('.activity-bar-item[data-panel="team-panel"]');
+                if (actBtn && window.panelSystem) {
+                    window.panelSystem.toggleActivityPanel('team-panel');
+                }
+
+                // Switch content to chat
+                var kpiContent = document.getElementById('kpi-details-content');
+                var chatContent = document.getElementById('chat-content');
+                if (kpiContent && chatContent) {
+                    kpiContent.style.display = 'none';
+                    chatContent.style.display = 'block';
+                }
+            });
+        });
+    }
+
+    // ===== Init =====
+    document.addEventListener('DOMContentLoaded', function() {
+        setupChatToggle();
+
+        // Load KPI config from server and apply visibility
+        fetchKpiConfig()
+        .then(function(config) {
+            kpiConfig = config;
+            applyKpiVisibility(config);
+        })
+        .catch(function(err) {
+            console.error('Initial config load error:', err);
+        });
+
+        initModal();
+        initRefreshButton();
+        updateRefreshTime();
+        fetchKpiData();
+
+        refreshInterval = setInterval(fetchKpiData, 30000);
+    });
+})();
+</script>
+{% endblock %}

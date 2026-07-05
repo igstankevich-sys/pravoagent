@@ -1,0 +1,299 @@
+/* Workspace Layout — ПравоАгент */
+/* Main workspace for role-based desktops */
+
+.workspace {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--color-bg);
+}
+
+.workspace-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.workspace-sidebar {
+    width: var(--workspace-sidebar-width, 280px);
+    background: var(--color-bg);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: width var(--transition-base);
+}
+
+.workspace-sidebar.collapsed {
+    width: 0;
+    border-right: none;
+}
+
+.workspace-sidebar-right {
+    width: var(--workspace-right-width, 320px);
+    background: var(--color-bg);
+    border-left: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: width var(--transition-base);
+}
+
+.workspace-sidebar-right.collapsed {
+    width: 0;
+    border-left: none;
+}
+
+.workspace-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* Workspace toolbar */
+.workspace-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-md);
+    background: var(--color-bg-alt);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    min-height: 40px;
+}
+
+.workspace-toolbar-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.workspace-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* Workspace body (the main content area) */
+.workspace-body {
+    flex: 1;
+    overflow: auto;
+    padding: var(--space-md);
+}
+
+/* Sidebar sections */
+.workspace-sidebar-section {
+    padding: var(--space-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.workspace-sidebar-section:last-child {
+    border-bottom: none;
+}
+
+.workspace-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-xs) var(--space-sm);
+    margin-bottom: var(--space-xs);
+}
+
+.workspace-sidebar-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-muted);
+}
+
+.workspace-sidebar-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+    background: none;
+    font-size: 14px;
+}
+
+.workspace-sidebar-action:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+/* Workspace split view */
+.workspace-split {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.workspace-split-vertical {
+    flex-direction: column;
+}
+
+.workspace-split > * {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Workspace header (top bar, combines with panel system) */
+.workspace-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-md);
+    background: var(--color-bg-alt);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    min-height: 48px;
+}
+
+.workspace-header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.workspace-header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* Workspace tabs (file tabs) */
+.workspace-tabs {
+    display: flex;
+    align-items: center;
+    background: var(--color-bg-alt);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.workspace-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.workspace-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-right: 1px solid var(--color-border);
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    user-select: none;
+    position: relative;
+}
+
+.workspace-tab:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+.workspace-tab.active {
+    color: var(--color-text);
+    background: var(--color-bg);
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.workspace-tab .tab-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+    background: none;
+    padding: 0;
+    opacity: 0;
+}
+
+.workspace-tab:hover .tab-close {
+    opacity: 1;
+}
+
+.workspace-tab .tab-close:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+/* Integration with panel system */
+.workspace .panel-layout {
+    height: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .workspace-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform var(--transition-base);
+        width: 280px !important;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .workspace-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .workspace-sidebar-right {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 100;
+        transform: translateX(100%);
+        transition: transform var(--transition-base);
+        width: 280px !important;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .workspace-sidebar-right.open {
+        transform: translateX(0);
+    }
+
+    .workspace-sidebar.collapsed,
+    .workspace-sidebar-right.collapsed {
+        transform: translateX(-100%);
+    }
+
+    .workspace-sidebar-right.collapsed {
+        transform: translateX(100%);
+    }
+
+    .workspace-body {
+        padding: var(--space-sm);
+    }
+}

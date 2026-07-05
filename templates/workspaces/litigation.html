@@ -1,0 +1,545 @@
+{% extends "base.html" %}
+{% block title %}Судебный юрист — ПравоАгент{% endblock %}
+
+{% block activity_bar %}
+<div class="panel-activity-bar">
+    <button class="activity-bar-item active" data-panel="explorer" title="Дела (Ctrl+B)">
+        &#128203;
+    </button>
+    <button class="activity-bar-item" data-panel="documents" title="Документы">
+        &#128196;
+    </button>
+    <button class="activity-bar-item" data-panel="chat-agent" title="Чат с AI-агентом">
+        &#128172;
+    </button>
+    <button class="activity-bar-item" data-panel="kad" title="КАД Арбитр">
+        &#128269;
+    </button>
+    <div class="activity-bar-bottom">
+        <button class="activity-bar-item" onclick="document.getElementById('git-modal').classList.add('open')" title="Git-интеграция">
+            &#128190;
+        </button>
+        <button class="activity-bar-item" onclick="document.getElementById('agents-modal').classList.add('open')" title="AI-агенты">
+            &#129302;
+        </button>
+        <button class="activity-bar-item" data-action="toggle-sidebar" title="Toggle Sidebar">
+            &#9776;
+        </button>
+        <button class="activity-bar-item" id="omnibox-trigger" onclick="window.omnibox.open()" title="Command Palette (Ctrl+K)">
+            &#8984;
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar_panel %}
+<div class="panel" data-panel-id="explorer" data-default-width="280">
+    <div class="panel-header">
+        <span class="panel-header-title">Дела</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Collapse" data-action="collapse-panel">&#9660;</button>
+            <button class="panel-header-btn" title="More">&#8942;</button>
+        </div>
+    </div>
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="cases-tree">
+            <span>Дела</span>
+        </div>
+        <div class="panel-tab" data-tab-target="favorites">
+            <span>Избранное</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="kad-panel">
+            <span>
+                КАД
+                <span class="badge badge-test badge-sm" style="margin-left: 4px;">ТЕСТ</span>
+            </span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <div class="panel-section" data-tab-content="cases-tree" style="padding: var(--space-sm);">
+            <div class="workspace-sidebar-header">
+                <span class="workspace-sidebar-title">Арбитражные дела</span>
+                <button class="workspace-sidebar-action" title="Создать дело">+</button>
+            </div>
+            <div class="tree tree-scrollable">
+                {% if cases %}
+                    {% set arb_cases = cases|selectattr("case_type", "equalto", "litigation")|list %}
+                    {% if arb_cases %}
+                    <div class="tree-item">
+                        <div class="tree-item-content tree-selected">
+                            <span class="tree-toggle expanded">&rsaquo;</span>
+                            <span class="tree-icon tree-icon-folder">&#128193;</span>
+                            <span class="tree-label">Судебные дела</span>
+                            <span class="tree-meta badge badge-sm badge-default">{{ arb_cases|length }}</span>
+                        </div>
+                        <ul class="tree-children" style="display: block;">
+                            {% for case in arb_cases %}
+                            <li class="tree-item">
+                                <div class="tree-item-content" onclick="openDocument({{ case.id }})" style="cursor: pointer;">
+                                    <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                                    <span class="tree-icon tree-icon-case">&#128203;</span>
+                                    <span class="tree-label">{{ case.title }}</span>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="panel-empty">
+                        <div class="panel-empty-icon">&#128203;</div>
+                        <div class="panel-empty-text">Нет дел. Создайте новое дело.</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="favorites" style="display: none; padding: var(--space-sm);">
+            <div class="panel-empty">
+                <div class="panel-empty-icon">&#10084;</div>
+                <div class="panel-empty-text">Нет избранных дел</div>
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="kad-panel" style="display: none; padding: var(--space-sm);">
+            <div class="panel-empty">
+                <div class="panel-empty-icon">&#128269;</div>
+                <div class="panel-empty-text">КАД Арбитр — интеграция в тестовом режиме</div>
+                <span class="badge badge-test" style="margin-top: var(--space-sm);">ТЕСТ</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block main_panel %}
+<div class="panel" data-panel-id="main" style="border-right: none;">
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="case-view">
+            <span>Дело</span>
+        </div>
+        <div class="panel-tab" data-tab-target="documents-tab">
+            <span>Документы</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="chat-tab">
+            <span>Чат с агентом</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="case-view">
+        <!-- Workspace toolbar -->
+        <div class="workspace-toolbar">
+            <span class="workspace-toolbar-title">Судебные дела</span>
+            <div class="workspace-toolbar-actions">
+                <button class="btn btn-sm">&#128203; Все дела</button>
+            </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div style="display: flex; gap: var(--space-sm); padding: var(--space-md) 0; flex-wrap: wrap;">
+            <button class="btn btn-sm" onclick="sendToAiChat('Подготовь исковое заявление по выбранному делу')">&#128221; Создать иск</button>
+            <button class="btn btn-sm btn-secondary" onclick="sendToAiChat('Подготовь претензию контрагенту по выбранному делу')">&#128233; Претензия</button>
+            <button class="btn btn-sm btn-secondary" onclick="sendToAiChat('Подготовь жалобу по выбранному делу')">&#128226; Жалоба</button>
+            <button class="btn btn-sm btn-secondary" onclick="sendToAiChat('Подготовь ходатайство об ознакомлении с материалами дела')">&#128195; Ознакомление с делом</button>
+        </div>
+
+        <!-- Cases Table -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">&#128203; Мои дела</span>
+                <div class="card-header-actions">
+                    <span class="badge badge-test badge-sm">ТЕСТ</span>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="table-filters">
+                    <div class="table-filter">
+                        <label>Статус:</label>
+                        <select>
+                            <option>Все</option>
+                            <option>Открыто</option>
+                            <option>В работе</option>
+                            <option>Закрыто</option>
+                        </select>
+                    </div>
+                    <div class="table-filter-search">
+                        <span class="search-icon">&#128269;</span>
+                        <input type="text" placeholder="Поиск по делам..." class="form-input-sm">
+                    </div>
+                </div>
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Дело</th>
+                                <th>Статус</th>
+                                <th>Ответчик</th>
+                                <th>Сумма</th>
+                                <th>Дата</th>
+                                <th class="cell-action"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if cases %}
+                                {% for case in cases %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ case.title }}</strong>
+                                        {% if case.case_number %}
+                                        <br><span class="text-xs text-muted">{{ case.case_number }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if case.status == "open" %}
+                                        <span class="status-text"><span class="status-dot status-dot-open"></span> Открыто</span>
+                                        {% elif case.status == "in_progress" %}
+                                        <span class="status-text"><span class="status-dot status-dot-in_progress"></span> В работе</span>
+                                        {% elif case.status == "closed" %}
+                                        <span class="status-text"><span class="status-dot status-dot-closed"></span> Закрыто</span>
+                                        {% else %}
+                                        <span class="status-text">{{ case.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="cell-muted">{{ case.defendant or "—" }}</td>
+                                    <td class="cell-right">
+                                        {% if case.priority == "high" or case.priority == "urgent" %}
+                                        <span class="badge badge-danger badge-sm">Высокий</span>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="cell-muted">{{ case.created_at.strftime("%d.%m.%Y") if case.created_at else "—" }}</td>
+                                    <td class="cell-action"><button class="table-row-action">&#8942;</button></td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                                        Нет дел. Начните с создания первого дела.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integrations Section -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-header">
+                <span class="card-header-title">&#128279; Интеграции</span>
+                <div class="card-header-actions">
+                    <span class="badge badge-test badge-sm">ТЕСТ</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; gap: var(--space-md); flex-wrap: wrap;">
+                    <div class="card" style="flex: 1; min-width: 200px; text-align: center; padding: var(--space-md); cursor: pointer;" onclick="sendToAiChat('Найди дело в КАД Арбитраж по номеру. Расскажи, что известно о деле в открытых источниках.')">
+                        <div style="font-size: 2rem; margin-bottom: var(--space-sm);">&#9878;</div>
+                        <strong>КАД Арбитр</strong>
+                        <p class="text-xs text-muted">Поиск в КАД</p>
+                        <span class="badge badge-test badge-sm">ТЕСТ</span>
+                    </div>
+                    <div class="card" style="flex: 1; min-width: 200px; text-align: center; padding: var(--space-md); cursor: pointer;" onclick="sendToAiChat('Подготовь пакет документов для отправки Почтой России: опись вложения, сопроводительное письмо, конверт с обратным уведомлением.')">
+                        <div style="font-size: 2rem; margin-bottom: var(--space-sm);">&#9993;</div>
+                        <strong>Почта России</strong>
+                        <p class="text-xs text-muted">Подготовить отправку</p>
+                        <span class="badge badge-test badge-sm">ТЕСТ</span>
+                    </div>
+                    <div class="card" style="flex: 1; min-width: 200px; text-align: center; padding: var(--space-md); cursor: pointer;" onclick="sendToAiChat('Проверь информацию по делу в ГАС Правосудие. Найди решения, определения и статус движения дела.')">
+                        <div style="font-size: 2rem; margin-bottom: var(--space-sm);">&#9879;</div>
+                        <strong>ГАС Правосудие</strong>
+                        <p class="text-xs text-muted">Проверить статус</p>
+                        <span class="badge badge-test badge-sm">ТЕСТ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="documents-tab" style="display: none;">
+        <div class="workspace-toolbar">
+            <span class="workspace-toolbar-title">&#128196; Документы</span>
+            <div class="workspace-toolbar-actions" style="display: flex; gap: var(--space-xs);">
+                <button class="btn btn-sm" onclick="openExportModal(1)">&#128230; Экспорт</button>
+                <button class="btn btn-sm btn-secondary" onclick="openShareModal(1)">&#128279; Расшарить</button>
+            </div>
+        </div>
+        <div class="card" style="margin-top: var(--space-sm);">
+            <div class="card-body" style="padding: 0;">
+                <div id="documents-list" style="padding: var(--space-md);">
+                    <div class="panel-empty">
+                        <div class="panel-empty-icon">&#128196;</div>
+                        <div class="panel-empty-text">Документы загружаются...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="chat-tab" style="display: none;">
+        <div class="panel-empty">
+            <div class="panel-empty-icon">&#128172;</div>
+            <div class="panel-empty-text">
+                Чат с AI-агентом доступен в правой панели
+            </div>
+            <button class="btn btn-sm" onclick="openAgentChat()" style="margin-top: var(--space-sm);">
+                &#128172; Открыть чат с агентом
+            </button>
+        </div>
+    </div>
+
+    <div class="panel-resize-handle" data-resize-target="right"></div>
+</div>
+{% endblock %}
+
+{% block right_panel %}
+<div class="panel" data-panel-id="chat-agent" data-default-width="320" style="width: 320px; flex: none;">
+    <div class="panel-header">
+        <span class="panel-header-title">AI-агент: Судебный юрист</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Close" data-action="collapse-panel">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <div class="chat-widget" data-agent-type="litigation" data-title="AI-агент: Судебный юрист" data-auto-init></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Export Modal -->
+<div id="export-modal" class="modal-overlay" style="display: none;">
+    <div class="modal" style="max-width: 400px;">
+        <div class="modal-header">
+            <span class="modal-title">Экспорт документа</span>
+            <button class="modal-close" onclick="closeExportModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="text-sm text-muted" style="margin-bottom: var(--space-md);">Выберите формат для экспорта:</p>
+            <div class="export-options" style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+                <button class="btn btn-sm btn-secondary" onclick="exportDoc('docx')">.docx</button>
+                <button class="btn btn-sm btn-secondary" onclick="exportDoc('pdf')">.pdf</button>
+                <button class="btn btn-sm btn-secondary" onclick="exportDoc('txt')">.txt</button>
+                <button class="btn btn-sm btn-secondary" onclick="exportDoc('md')">.md</button>
+            </div>
+            <div id="export-result" style="margin-top: var(--space-md); display: none;">
+                <div class="alert alert-success">
+                    <span>Файл сохранён: <span id="export-filename"></span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div id="share-modal" class="modal-overlay" style="display: none;">
+    <div class="modal" style="max-width: 400px;">
+        <div class="modal-header">
+            <span class="modal-title">Расшарить документ</span>
+            <button class="modal-close" onclick="closeShareModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">ID пользователя:</label>
+                <input type="number" id="share-user-id" class="form-input" placeholder="Введите ID пользователя" min="1">
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">Уровень доступа:</label>
+                <select id="share-access-level" class="form-input">
+                    <option value="read">Только чтение</option>
+                    <option value="edit">Редактирование</option>
+                    <option value="comment">Комментирование</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-md);">
+                <label class="form-label">Срок доступа (дней):</label>
+                <input type="number" id="share-expires" class="form-input" value="30" min="1">
+            </div>
+            <div id="share-result" style="display: none;">
+                <div class="alert alert-success">
+                    <span>Документ успешно расшарен</span>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="shareDocument()" style="width: 100%;">Расшарить</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Litigation workspace specific
+    document.querySelectorAll('[data-tab-content]').forEach(el => {
+        // Tab switching handled by panel-system.js
+    });
+
+    var currentDocId = null;
+
+    function setCurrentDocId(docId) {
+        currentDocId = docId;
+    }
+
+    // --- Export ---
+    function openExportModal(docId) {
+        setCurrentDocId(docId);
+        document.getElementById('export-result').style.display = 'none';
+        document.getElementById('export-modal').style.display = 'flex';
+    }
+
+    function closeExportModal() {
+        document.getElementById('export-modal').style.display = 'none';
+    }
+
+    function exportDoc(format) {
+        if (!currentDocId) return;
+        fetch('/api/documents/' + currentDocId + '/export?format=' + format)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                document.getElementById('export-result').style.display = 'block';
+                document.getElementById('export-filename').textContent = data.filename + ' (' + data.size_bytes + ' B)';
+            })
+            .catch(function(err) {
+                alert('Ошибка экспорта: ' + err);
+            });
+    }
+
+    // --- Share ---
+    function openShareModal(docId) {
+        setCurrentDocId(docId);
+        document.getElementById('share-result').style.display = 'none';
+        document.getElementById('share-modal').style.display = 'flex';
+    }
+
+    function closeShareModal() {
+        document.getElementById('share-modal').style.display = 'none';
+    }
+
+    function shareDocument() {
+        if (!currentDocId) return;
+        var userId = document.getElementById('share-user-id').value;
+        var accessLevel = document.getElementById('share-access-level').value;
+        var expires = document.getElementById('share-expires').value;
+
+        fetch('/api/documents/' + currentDocId + '/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                target_user_id: parseInt(userId),
+                access_level: accessLevel,
+                expires_in_days: parseInt(expires)
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.detail) {
+                alert('Ошибка: ' + data.detail);
+            } else {
+                document.getElementById('share-result').style.display = 'block';
+            }
+        })
+        .catch(function(err) {
+            alert('Ошибка: ' + err);
+        });
+    }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.style.display = 'none';
+            }
+        });
+    });
+
+    // --- Send text to AI chat widget ---
+    function sendToAiChat(text) {
+        var chatContainer = document.querySelector('.chat-widget');
+        if (!chatContainer) {
+            alert('Чат-панель не найдена. Откройте правую панель.');
+            return;
+        }
+        // Ensure right panel is visible
+        ensureRightPanelVisible();
+        var input = chatContainer.querySelector('.chat-input');
+        if (input) {
+            input.value = text;
+            var event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
+            var sendBtn = chatContainer.querySelector('.chat-send-btn');
+            if (sendBtn) sendBtn.click();
+        }
+    }
+
+    // --- Ensure right panel (chat-agent) is visible ---
+    function ensureRightPanelVisible() {
+        var layout = document.querySelector('.panel-layout');
+        var chatPanel = document.querySelector('[data-panel-id="chat-agent"]');
+        if (!chatPanel) return;
+
+        // If chat-agent is collapsed (panels collapsed state)
+        if (chatPanel.classList.contains('panel-collapsed')) {
+            chatPanel.classList.remove('panel-collapsed');
+        }
+
+        // If right panel is collapsed (layout level)
+        if (layout && layout.classList.contains('right-collapsed')) {
+            layout.classList.remove('right-collapsed');
+        }
+
+        // Use panel system to activate the panel if it's not already active
+        if (window.panelSystem) {
+            var isActive = window.panelSystem.state.layout.activityBar === 'chat-agent';
+            if (!isActive) {
+                window.panelSystem.toggleActivityPanel('chat-agent');
+            }
+        }
+    }
+
+    // --- Open document (file tree) ---
+    function openDocument(docId) {
+        fetch('/api/documents/' + docId)
+            .then(function(r) { return r.json(); })
+            .then(function(doc) {
+                var caseViewBody = document.querySelector('[data-tab-content="case-view"]');
+                if (caseViewBody) {
+                    caseViewBody.innerHTML =
+                        '<div class="workspace-toolbar">' +
+                            '<span class="workspace-toolbar-title">&#128196; ' + (doc.title || 'Документ') + '</span>' +
+                            '<div class="workspace-toolbar-actions">' +
+                                '<button class="btn btn-sm" onclick="openExportModal(' + docId + ')">&#128230; Экспорт</button>' +
+                                '<button class="btn btn-sm btn-secondary" onclick="location.reload()">&#8592; Назад</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="card" style="margin-top: var(--space-sm);">' +
+                            '<div class="card-body" style="padding: var(--space-md);">' +
+                                '<div style="white-space: pre-wrap; line-height: 1.6;">' +
+                                    (doc.content || 'Содержимое документа загружается...') +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                }
+            })
+            .catch(function(err) {
+                alert('Ошибка загрузки документа: ' + err);
+            });
+    }
+
+    // --- "Открыть чат с агентом" handler ---
+    function openAgentChat() {
+        ensureRightPanelVisible();
+        // Focus chat input after a short delay for panel animation
+        setTimeout(function() {
+            var chatContainer = document.querySelector('.chat-widget');
+            if (chatContainer) {
+                chatContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                var input = chatContainer.querySelector('.chat-input');
+                if (input) input.focus();
+            }
+        }, 150);
+    }
+</script>
+{% endblock %}

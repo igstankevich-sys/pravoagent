@@ -1,0 +1,69 @@
+{# 
+  Partial: audit_log_table.html
+  Отрендерить с audit_logs (list), show_pagination (bool, default True).
+#}
+<div class="data-table-wrapper">
+    <table class="data-table data-table-compact">
+        <thead>
+            <tr>
+                <th>Время</th>
+                <th>Пользователь</th>
+                <th>Действие</th>
+                <th>Объект</th>
+                <th>Детали</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if audit_logs %}
+                {% for log in audit_logs %}
+                <tr>
+                    <td class="cell-muted">
+                        {{ log.timestamp.strftime("%d.%m.%Y %H:%M") if log.timestamp else log.get("timestamp", "—") }}
+                    </td>
+                    <td>{{ log.user_name or log.get("user_name") or log.user_id or log.get("user_id") or "—" }}</td>
+                    <td><code>{{ log.action or log.get("action") }}</code></td>
+                    <td>
+                        {% set entity = log.entity_type or log.get("entity_type") %}
+                        {% if entity %}
+                            <span class="badge badge-default badge-sm">{{ entity }}</span>
+                            {% if log.entity_id or log.get("entity_id") %}
+                            <span class="cell-muted">#{{ log.entity_id or log.get("entity_id") }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="cell-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="cell-muted">
+                        {% set details = log.details or log.get("details") %}
+                        {{ details[:120] if details else "—" }}
+                        {% if details and details|length > 120 %}
+                            <span class="badge badge-sm badge-info">...</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                        Нет записей аудита
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% if show_pagination|default(true) and audit_logs and audit_logs|length > 0 %}
+<div class="pagination" style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm) var(--space-md);">
+    <span class="cell-muted">Всего записей: {{ total|default(audit_logs|length) }}</span>
+    <div class="pagination-controls">
+        <button class="btn btn-sm btn-secondary" onclick="window.location.href='?page={{ page|default(1) - 1 }}'" {% if page|default(1) <= 1 %}disabled{% endif %}>
+            &larr; Назад
+        </button>
+        <span class="cell-muted" style="margin: 0 var(--space-sm);">Стр. {{ page|default(1) }}</span>
+        <button class="btn btn-sm btn-secondary" onclick="window.location.href='?page={{ page|default(1) + 1 }}'">
+            Вперёд &rarr;
+        </button>
+    </div>
+</div>
+{% endif %}

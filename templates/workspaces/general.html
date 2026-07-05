@@ -1,0 +1,814 @@
+{% extends "base.html" %}
+{% block title %}Общий отдел — ПравоАгент{% endblock %}
+
+{% block extra_styles %}
+<style>
+.section-card {
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 2px solid transparent;
+}
+.section-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+}
+.section-card-active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+.section-card-active strong {
+    color: var(--color-primary);
+}
+#chat-messages {
+    scroll-behavior: smooth;
+}
+#chat-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+.modal-overlay {
+    align-items: center;
+    justify-content: center;
+}
+.alert-danger {
+    background: var(--color-danger-light, #fde8e8);
+    color: var(--color-danger);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+}
+</style>
+{% endblock %}
+
+{% block activity_bar %}
+<div class="panel-activity-bar">
+    <button class="activity-bar-item active" data-panel="explorer" title="Доверенности (Ctrl+B)" onclick="switchActivityPanel('explorer')">
+        &#128195;
+    </button>
+    <button class="activity-bar-item" data-panel="notary" title="Нотариат" onclick="switchActivityPanel('notary')">
+        &#128208;
+    </button>
+    <button class="activity-bar-item" data-panel="npa" title="НПА" onclick="switchActivityPanel('npa')">
+        &#128214;
+    </button>
+    <button class="activity-bar-item" data-panel="registries" title="Реестры" onclick="switchActivityPanel('registries')">
+        &#128202;
+    </button>
+    <div class="activity-bar-bottom">
+        <button class="activity-bar-item" onclick="document.getElementById('git-modal').classList.add('open')" title="Git-интеграция">
+            &#128190;
+        </button>
+        <button class="activity-bar-item" onclick="document.getElementById('agents-modal').classList.add('open')" title="AI-агенты">
+            &#129302;
+        </button>
+        <button class="activity-bar-item" data-action="toggle-sidebar" title="Toggle Sidebar">
+            &#9776;
+        </button>
+        <button class="activity-bar-item" id="omnibox-trigger" onclick="window.omnibox.open()" title="Command Palette (Ctrl+K)">
+            &#8984;
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar_panel %}
+<div class="panel" data-panel-id="explorer" data-default-width="280">
+    <div class="panel-header">
+        <span class="panel-header-title">Документы</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Collapse" data-action="collapse-panel">&#9660;</button>
+            <button class="panel-header-btn" title="More">&#8942;</button>
+        </div>
+    </div>
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="proxies-list" onclick="switchSidebarTab('proxies-list')">
+            <span>Доверенности</span>
+        </div>
+        <div class="panel-tab" data-tab-target="notary-list" onclick="switchSidebarTab('notary-list')">
+            <span>Нотариат</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="npa-list" onclick="switchSidebarTab('npa-list')">
+            <span>НПА</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="registries-list" onclick="switchSidebarTab('registries-list')">
+            <span>Реестры</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <div class="panel-section" data-tab-content="proxies-list" style="padding: var(--space-sm);">
+            <div class="workspace-sidebar-header">
+                <span class="workspace-sidebar-title">Доверенности</span>
+                <button class="workspace-sidebar-action" title="Создать доверенность" onclick="openCreateModal('power_of_attorney')">+</button>
+            </div>
+            <div class="tree tree-scrollable" id="proxies-tree">
+                <div class="panel-empty">
+                    <div class="panel-empty-icon">&#128195;</div>
+                    <div class="panel-empty-text">Загрузка доверенностей...</div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="notary-list" style="display: none; padding: var(--space-sm);">
+            <div class="panel-empty">
+                <div class="panel-empty-icon">&#128208;</div>
+                <div class="panel-empty-text">Нотариальные действия отсутствуют</div>
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="npa-list" style="display: none; padding: var(--space-sm);">
+            <div class="panel-empty">
+                <div class="panel-empty-icon">&#128214;</div>
+                <div class="panel-empty-text">НПА в разработке</div>
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="registries-list" style="display: none; padding: var(--space-sm);">
+            <div class="panel-empty">
+                <div class="panel-empty-icon">&#128202;</div>
+                <div class="panel-empty-text">Реестры пусты</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block main_panel %}
+<div class="panel" data-panel-id="main" style="border-right: none;">
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="general-view">
+            <span>Общий отдел</span>
+        </div>
+        <div class="panel-tab" data-tab-target="history-tab">
+            <span>История</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="general-view">
+        <div class="workspace-toolbar">
+            <span class="workspace-toolbar-title">Общий отдел</span>
+            <div class="workspace-toolbar-actions">
+                <button class="btn btn-sm" onclick="openCreateModal('power_of_attorney')">&#128195; Доверенность</button>
+                <button class="btn btn-sm btn-secondary" onclick="openCreateModal('contract')">&#128208; Договор</button>
+                <button class="btn btn-sm btn-secondary" onclick="openCreateModal('claim')">&#128214; Претензия</button>
+            </div>
+        </div>
+
+        <!-- Documents Overview -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-header">
+                <span class="card-header-title">&#128196; Документы общего отдела</span>
+                <div class="card-header-actions">
+                    <span class="badge badge-test badge-sm">ТЕСТ</span>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Документ</th>
+                                <th>Тип</th>
+                                <th>Статус</th>
+                                <th>Дата</th>
+                                <th class="cell-action"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="documents-tbody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                                    Загрузка документов...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Cards -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-body">
+                <div class="card-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                    <div class="card section-card section-card-active" data-section="power_of_attorney" style="padding: var(--space-md); text-align: center; cursor: pointer;" onclick="filterBySection('power_of_attorney')">
+                        <div style="font-size: 2rem;">&#128195;</div>
+                        <strong>Доверенности</strong>
+                        <p class="text-xs text-muted"><span class="section-count">0</span> доверенностей</p>
+                    </div>
+                    <div class="card section-card" data-section="notary" style="padding: var(--space-md); text-align: center; cursor: pointer;" onclick="filterBySection('notary')">
+                        <div style="font-size: 2rem;">&#128208;</div>
+                        <strong>Нотариат</strong>
+                        <p class="text-xs text-muted"><span class="section-count">0</span> нотариальных действий</p>
+                    </div>
+                    <div class="card section-card" data-section="npa" style="padding: var(--space-md); text-align: center; cursor: pointer;" onclick="filterBySection('npa')">
+                        <div style="font-size: 2rem;">&#128214;</div>
+                        <strong>НПА</strong>
+                        <p class="text-xs text-muted"><span class="section-count">0</span> документов</p>
+                    </div>
+                    <div class="card section-card" data-section="registry" style="padding: var(--space-md); text-align: center; cursor: pointer;" onclick="filterBySection('registry')">
+                        <div style="font-size: 2rem;">&#128202;</div>
+                        <strong>Реестры</strong>
+                        <p class="text-xs text-muted"><span class="section-count">0</span> записей</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-body" data-tab-content="history-tab" style="display: none;">
+        <div class="panel-empty">
+            <div class="panel-empty-icon">&#128214;</div>
+            <div class="panel-empty-text">История операций</div>
+        </div>
+    </div>
+
+    <div class="panel-resize-handle" data-resize-target="right"></div>
+</div>
+{% endblock %}
+
+{% block right_panel %}
+<div class="panel" data-panel-id="npa" data-default-width="320" style="width: 320px; flex: none;">
+    <div class="panel-header">
+        <span class="panel-header-title">AI-агент: Общий отдел</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Close" data-action="collapse-panel">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <div class="chat-widget" data-agent-type="general_dept" data-title="AI-агент: Общий отдел" data-auto-init></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Create Document Modal -->
+<div id="create-modal" class="modal-overlay" style="display: none;">
+    <div class="modal" style="max-width: 450px;">
+        <div class="modal-header">
+            <span class="modal-title" id="create-modal-title">Создать документ</span>
+            <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">Тип документа:</label>
+                <select id="create-doc-type" class="form-input" onchange="onCreateDocTypeChange()">
+                    <option value="power_of_attorney">Доверенность</option>
+                    <option value="contract">Договор</option>
+                    <option value="claim">Претензия</option>
+                    <option value="legal_opinion">Юридическое заключение</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">Название:</label>
+                <input type="text" id="create-doc-title" class="form-input" placeholder="Введите название документа">
+            </div>
+            <div id="create-doc-fields">
+                <div class="form-group" style="margin-bottom: var(--space-sm);">
+                    <label class="form-label" id="create-field1-label">Кому выдаётся:</label>
+                    <input type="text" id="create-field1" class="form-input" placeholder="ФИО или название организации">
+                </div>
+            </div>
+            <div id="create-result" style="display: none; margin-top: var(--space-sm);">
+                <div class="alert alert-success">
+                    <span>Документ создан: <span id="create-doc-name"></span></span>
+                </div>
+            </div>
+            <div id="create-error" style="display: none; margin-top: var(--space-sm);">
+                <div class="alert alert-danger">
+                    <span id="create-error-text"></span>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="createDocument()" style="width: 100%; margin-top: var(--space-md);">Создать</button>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div id="export-modal" class="modal-overlay" style="display: none;">
+    <div class="modal" style="max-width: 400px;">
+        <div class="modal-header">
+            <span class="modal-title">Экспорт документа</span>
+            <button class="modal-close" onclick="closeExportModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="text-sm text-muted" style="margin-bottom: var(--space-md);">Выберите формат для экспорта:</p>
+            <div class="export-options" style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+                <button class="btn btn-sm btn-secondary" onclick="exportDoc('docx')">.docx</button>
+                <button class="btn btn-sm btn-secondary" onclick="exportDoc('pdf')">.pdf</button>
+                <button class="btn btn-sm btn-secondary" onclick="exportDoc('txt')">.txt</button>
+                <button class="btn btn-sm btn-secondary" onclick="exportDoc('md')">.md</button>
+            </div>
+            <div id="export-result" style="margin-top: var(--space-md); display: none;">
+                <div class="alert alert-success">
+                    <span>Файл сохранён: <span id="export-filename"></span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div id="share-modal" class="modal-overlay" style="display: none;">
+    <div class="modal" style="max-width: 400px;">
+        <div class="modal-header">
+            <span class="modal-title">Расшарить документ</span>
+            <button class="modal-close" onclick="closeShareModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">ID пользователя:</label>
+                <input type="number" id="share-user-id" class="form-input" placeholder="Введите ID пользователя" min="1">
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+                <label class="form-label">Уровень доступа:</label>
+                <select id="share-access-level" class="form-input">
+                    <option value="read">Только чтение</option>
+                    <option value="edit">Редактирование</option>
+                    <option value="comment">Комментирование</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-md);">
+                <label class="form-label">Срок доступа (дней):</label>
+                <input type="number" id="share-expires" class="form-input" value="30" min="1">
+            </div>
+            <div id="share-result" style="display: none;">
+                <div class="alert alert-success">
+                    <span>Документ успешно расшарен</span>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="shareDocument()" style="width: 100%;">Расшарить</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    'use strict';
+
+    // ===== State =====
+    var allDocuments = [];
+    var currentFilter = null;
+    var currentDocId = null;
+    // ===== Chat removed — handled by chat-widget.js =====
+
+    // ===== Helpers =====
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function getStatusBadge(status) {
+        var label = status;
+        var cls = 'badge-default';
+        if (status === 'draft') { label = 'Черновик'; cls = 'badge-warning'; }
+        else if (status === 'approved') { label = 'Утверждён'; cls = 'badge-success'; }
+        else if (status === 'active') { label = 'Активен'; cls = 'badge-success'; }
+        else if (status === 'completed') { label = 'Завершён'; cls = 'badge-info'; }
+        else if (status === 'cancelled') { label = 'Отменён'; cls = 'badge-danger'; }
+        return '<span class="badge ' + cls + ' badge-sm">' + label + '</span>';
+    }
+
+    function getDocTypeLabel(docType) {
+        var labels = {
+            'power_of_attorney': 'Доверенность',
+            'contract': 'Договор',
+            'claim': 'Претензия',
+            'lawsuit': 'Исковое заявление',
+            'legal_opinion': 'Юр. заключение',
+            'general_letter': 'Письмо',
+            'notary': 'Нотариат',
+            'npa': 'НПА',
+            'registry': 'Реестр'
+        };
+        return labels[docType] || docType;
+    }
+
+    function getSectionForDocType(docType) {
+        if (!docType) return 'other';
+        var t = docType.toLowerCase();
+        if (t.indexOf('power_of_attorney') !== -1 || t.indexOf('power') !== -1) return 'power_of_attorney';
+        if (t.indexOf('notary') !== -1) return 'notary';
+        if (t === 'npa') return 'npa';
+        if (t.indexOf('registry') !== -1 || t.indexOf('реестр') !== -1) return 'registry';
+        if (t === 'contract' || t === 'claim' || t === 'lawsuit' || t === 'legal_opinion' || t === 'general_letter') return 'power_of_attorney';
+        return 'other';
+    }
+
+    function formatDate(isoString) {
+        if (!isoString) return '—';
+        try {
+            var d = new Date(isoString);
+            if (isNaN(d.getTime())) return '—';
+            var day = String(d.getDate()).padStart(2, '0');
+            var month = String(d.getMonth() + 1).padStart(2, '0');
+            var year = d.getFullYear();
+            return day + '.' + month + '.' + year;
+        } catch(e) {
+            return '—';
+        }
+    }
+
+    // ===== Activity Bar =====
+    window.switchActivityPanel = function(panel) {
+        document.querySelectorAll('.activity-bar-item').forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        var actBtn = document.querySelector('.activity-bar-item[data-panel="' + panel + '"]');
+        if (actBtn) actBtn.classList.add('active');
+
+        var panelId = 'explorer';
+        if (panel === 'notary') panelId = 'explorer';
+        else if (panel === 'npa') panelId = 'explorer';
+        else if (panel === 'registries') panelId = 'explorer';
+
+        var sectionMap = {
+            'explorer': 'proxies-list',
+            'notary': 'notary-list',
+            'npa': 'npa-list',
+            'registries': 'registries-list'
+        };
+        switchSidebarTab(sectionMap[panel] || 'proxies-list');
+    };
+
+    // ===== Sidebar Tabs =====
+    window.switchSidebarTab = function(tabId) {
+        document.querySelectorAll('.panel-tab').forEach(function(t) { t.classList.remove('active'); });
+        var tabEl = document.querySelector('.panel-tab[data-tab-target="' + tabId + '"]');
+        if (tabEl) tabEl.classList.add('active');
+
+        document.querySelectorAll('[data-tab-content]').forEach(function(c) { c.style.display = 'none'; });
+        var contentEl = document.querySelector('[data-tab-content="' + tabId + '"]');
+        if (contentEl) contentEl.style.display = '';
+    };
+
+    // ===== Load Documents =====
+    function loadDocuments() {
+        fetch('/api/documents?limit=100', {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(resp) {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        })
+        .then(function(data) {
+            allDocuments = data.items || [];
+            renderTable(currentFilter);
+            renderSidebar();
+            updateSectionCounts();
+        })
+        .catch(function(err) {
+            console.error('Document load error:', err);
+            var tbody = document.getElementById('documents-tbody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: var(--space-xl); color: var(--color-danger);">' +
+                    '&#9888; Ошибка загрузки: ' + escapeHtml(err.message) + '</td></tr>';
+            }
+        });
+    }
+
+    // ===== Render Document Table =====
+    function renderTable(filterSection) {
+        var tbody = document.getElementById('documents-tbody');
+        if (!tbody) return;
+
+        var filtered = allDocuments;
+        if (filterSection) {
+            filtered = allDocuments.filter(function(doc) {
+                return getSectionForDocType(doc.doc_type) === filterSection;
+            });
+        }
+
+        if (filtered.length === 0) {
+            var msg = filterSection ? 'Нет документов в этом разделе.' : 'Нет документов. Создайте доверенность или другой документ.';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">' + escapeHtml(msg) + '</td></tr>';
+            return;
+        }
+
+        var html = '';
+        filtered.forEach(function(doc) {
+            html +=
+                '<tr>' +
+                    '<td><strong>' + escapeHtml(doc.title) + '</strong></td>' +
+                    '<td><span class="badge badge-default badge-sm">' + escapeHtml(getDocTypeLabel(doc.doc_type)) + '</span></td>' +
+                    '<td>' + getStatusBadge(doc.status) + '</td>' +
+                    '<td class="cell-muted">' + formatDate(doc.created_at) + '</td>' +
+                    '<td class="cell-action">' +
+                        '<button class="table-row-action" onclick="openDocActions(' + doc.id + ')">&#8942;</button>' +
+                    '</td>' +
+                '</tr>';
+        });
+        tbody.innerHTML = html;
+    }
+
+    // ===== Render Sidebar =====
+    function renderSidebar() {
+        var proxiesTree = document.getElementById('proxies-tree');
+        if (!proxiesTree) return;
+
+        var proxies = allDocuments.filter(function(doc) {
+            return getSectionForDocType(doc.doc_type) === 'power_of_attorney';
+        });
+
+        if (proxies.length === 0) {
+            proxiesTree.innerHTML =
+                '<div class="panel-empty">' +
+                    '<div class="panel-empty-icon">&#128195;</div>' +
+                    '<div class="panel-empty-text">Нет доверенностей</div>' +
+                '</div>';
+            return;
+        }
+
+        var html = '';
+        proxies.forEach(function(doc) {
+            html +=
+                '<div class="tree-item">' +
+                    '<div class="tree-item-content">' +
+                        '<span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>' +
+                        '<span class="tree-icon tree-icon-document">&#128195;</span>' +
+                        '<span class="tree-label">' + escapeHtml(doc.title) + '</span>' +
+                    '</div>' +
+                '</div>';
+        });
+        proxiesTree.innerHTML = html;
+    }
+
+    // ===== Update Section Counts =====
+    function updateSectionCounts() {
+        var sections = {
+            'power_of_attorney': 0,
+            'notary': 0,
+            'npa': 0,
+            'registry': 0
+        };
+        allDocuments.forEach(function(doc) {
+            var section = getSectionForDocType(doc.doc_type);
+            if (sections[section] !== undefined) sections[section]++;
+        });
+
+        document.querySelectorAll('.section-card').forEach(function(card) {
+            var section = card.dataset.section;
+            var countEl = card.querySelector('.section-count');
+            if (countEl && sections[section] !== undefined) {
+                countEl.textContent = sections[section];
+            }
+        });
+    }
+
+    // ===== Section Card Filter =====
+    window.filterBySection = function(section) {
+        currentFilter = (currentFilter === section) ? null : section;
+        renderTable(currentFilter);
+
+        document.querySelectorAll('.section-card').forEach(function(card) {
+            card.classList.remove('section-card-active');
+        });
+        if (currentFilter) {
+            var activeCard = document.querySelector('.section-card[data-section="' + currentFilter + '"]');
+            if (activeCard) activeCard.classList.add('section-card-active');
+        } else {
+            document.querySelectorAll('.section-card').forEach(function(card) {
+                card.classList.add('section-card-active');
+            });
+        }
+
+        // Also switch sidebar tab
+        var tabMap = {
+            'power_of_attorney': 'proxies-list',
+            'notary': 'notary-list',
+            'npa': 'npa-list',
+            'registry': 'registries-list'
+        };
+        if (currentFilter && tabMap[currentFilter]) {
+            switchSidebarTab(tabMap[currentFilter]);
+        }
+    };
+
+    // ===== Document Actions =====
+    window.openDocActions = function(docId) {
+        currentDocId = docId;
+        // Simple context menu - show export/share modals
+        openExportModal(docId);
+    };
+
+    // ===== Set Current Doc ID =====
+    function setCurrentDocId(docId) {
+        currentDocId = docId;
+    }
+
+    // ===== Create Document =====
+    window.openCreateModal = function(docType) {
+        document.getElementById('create-result').style.display = 'none';
+        document.getElementById('create-error').style.display = 'none';
+        if (docType) {
+            document.getElementById('create-doc-type').value = docType;
+        }
+        onCreateDocTypeChange();
+        document.getElementById('create-modal').style.display = 'flex';
+    };
+
+    window.closeCreateModal = function() {
+        document.getElementById('create-modal').style.display = 'none';
+    };
+
+    window.onCreateDocTypeChange = function() {
+        var type = document.getElementById('create-doc-type').value;
+        var titleInput = document.getElementById('create-doc-title');
+        var field1Label = document.getElementById('create-field1-label');
+        var field1 = document.getElementById('create-field1');
+
+        var labels = {
+            'power_of_attorney': 'Кому выдаётся:',
+            'contract': 'Контрагент:',
+            'claim': 'Кому адресована:',
+            'legal_opinion': 'Вопрос:'
+        };
+        var placeholders = {
+            'power_of_attorney': 'ФИО или название организации',
+            'contract': 'Название контрагента',
+            'claim': 'ФИО или организация',
+            'legal_opinion': 'Опишите вопрос для заключения'
+        };
+        var titles = {
+            'power_of_attorney': 'Доверенность',
+            'contract': 'Договор',
+            'claim': 'Претензия',
+            'legal_opinion': 'Юридическое заключение'
+        };
+
+        if (!titleInput.value || titleInput.value === '') {
+            titleInput.value = 'Новая ' + (titles[type] || type);
+        }
+        field1Label.textContent = labels[type] || 'Получатель:';
+        field1.placeholder = placeholders[type] || 'Введите данные';
+        document.getElementById('create-modal-title').textContent = 'Создать: ' + (titles[type] || type);
+    };
+
+    window.createDocument = function() {
+        var type = document.getElementById('create-doc-type').value;
+        var title = document.getElementById('create-doc-title').value.trim();
+        var field1 = document.getElementById('create-field1').value.trim();
+
+        if (!title) {
+            alert('Введите название документа');
+            return;
+        }
+
+        var context = {};
+        if (type === 'contract') {
+            context.party1 = 'ООО "Наша компания"';
+            context.party2 = field1 || 'Контрагент';
+            context.city = 'Москва';
+            context.contract_number = '1';
+        } else if (type === 'claim') {
+            context.sender = 'ООО "Наша компания"';
+            context.recipient = field1 || 'Адресат';
+            context.date = new Date().toLocaleDateString('ru-RU');
+            context.amount = '0';
+            context.sender_name = 'Генеральный директор';
+            context.recipient_name = field1 || 'Получатель';
+        } else if (type === 'legal_opinion') {
+            context.question = field1 || 'Вопрос';
+        } else {
+            context.sender = 'ООО "Наша компания"';
+            context.recipient = field1 || 'Представитель';
+            context.date = new Date().toLocaleDateString('ru-RU');
+            context.sender_name = 'Генеральный директор';
+            context.recipient_name = field1 || 'Получатель';
+        }
+
+        var resultDiv = document.getElementById('create-result');
+        var errorDiv = document.getElementById('create-error');
+        var errorText = document.getElementById('create-error-text');
+        resultDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+
+        fetch('/api/documents/from-template', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                template_name: type,
+                case_id: 1,
+                context: context
+            })
+        })
+        .then(function(r) {
+            return r.json().then(function(data) {
+                if (!r.ok) {
+                    throw new Error(data.detail || 'HTTP ' + r.status);
+                }
+                return data;
+            });
+        })
+        .then(function(data) {
+            var nameEl = document.getElementById('create-doc-name');
+            if (nameEl) nameEl.textContent = data.title || 'Документ №' + data.id;
+            resultDiv.style.display = 'block';
+            // Reload documents
+            loadDocuments();
+        })
+        .catch(function(err) {
+            errorText.textContent = 'Ошибка: ' + err.message;
+            errorDiv.style.display = 'block';
+        });
+    };
+
+    // ===== Export =====
+    window.openExportModal = function(docId) {
+        setCurrentDocId(docId);
+        document.getElementById('export-result').style.display = 'none';
+        document.getElementById('export-modal').style.display = 'flex';
+    };
+
+    window.closeExportModal = function() {
+        document.getElementById('export-modal').style.display = 'none';
+    };
+
+    window.exportDoc = function(format) {
+        if (!currentDocId) return;
+        fetch('/api/documents/' + currentDocId + '/export?format=' + format)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                document.getElementById('export-result').style.display = 'block';
+                document.getElementById('export-filename').textContent = data.filename + ' (' + data.size_bytes + ' B)';
+            })
+            .catch(function(err) {
+                alert('Ошибка экспорта: ' + err);
+            });
+    };
+
+    // ===== Share =====
+    window.openShareModal = function(docId) {
+        setCurrentDocId(docId);
+        document.getElementById('share-result').style.display = 'none';
+        document.getElementById('share-modal').style.display = 'flex';
+    };
+
+    window.closeShareModal = function() {
+        document.getElementById('share-modal').style.display = 'none';
+    };
+
+    window.shareDocument = function() {
+        if (!currentDocId) return;
+        var userId = document.getElementById('share-user-id').value;
+        if (!userId || isNaN(parseInt(userId))) {
+            alert('Укажите ID пользователя');
+            return;
+        }
+        var accessLevel = document.getElementById('share-access-level').value;
+        var expires = document.getElementById('share-expires').value;
+
+        fetch('/api/documents/' + currentDocId + '/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                target_user_id: parseInt(userId),
+                access_level: accessLevel,
+                expires_in_days: parseInt(expires)
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.detail) {
+                alert('Ошибка: ' + data.detail);
+            } else {
+                document.getElementById('share-result').style.display = 'block';
+            }
+        })
+        .catch(function(err) {
+            alert('Ошибка: ' + err);
+        });
+    };
+
+    // ===== Chat removed — handled by chat-widget.js =====
+
+    // ===== Modal Close Handlers =====
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay').forEach(function(m) {
+                if (m.style.display === 'flex') m.style.display = 'none';
+            });
+        }
+    });
+
+    // ===== Init =====
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDocuments();
+        // Set default active section cards
+        document.querySelectorAll('.section-card').forEach(function(card) {
+            card.classList.add('section-card-active');
+        });
+    });
+
+})();
+</script>
+{% endblock %}

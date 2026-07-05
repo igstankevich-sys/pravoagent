@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПравоАгент — Multi-Agent AI Platform для юристов</title>
+    <meta name="description" content="Multi-Agent AI Platform для юридических департаментов. Автономное ведение дел, RAG по базе знаний, Human-in-the-loop.">
+    <link rel="stylesheet" href="/static/landing.css">
+</head>
+<body>
+    <!-- Spot Effects -->
+    <div class="spot spot-1"></div>
+    <div class="spot spot-2"></div>
+    <div class="spot spot-3"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="/landing" class="nav-logo">
+            <div class="nav-logo-icon">&#9881;</div>
+            ПравоАгент
+        </a>
+        <ul class="nav-links">
+            <li><a href="#problems">Проблемы</a></li>
+            <li><a href="#solution">Решение</a></li>
+            <li><a href="#features">Функции</a></li>
+            <li><a href="#architecture">Архитектура</a></li>
+            <li><a href="#roles">Для кого</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="/auth/login" class="btn btn-ghost">Войти</a>
+            <a href="/auth/register" class="btn btn-primary">Регистрация</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+        <div class="hero-badge">
+            <span>v{{ app_version }}</span>
+            <span class="demo-badge">&#9888; ДЕМО-ПРОТОТИП</span>
+        </div>
+        <h1 class="hero-title">
+            <span class="highlight">Multi-Agent AI Platform</span><br>
+            для юридических департаментов
+        </h1>
+        <p class="hero-description">
+            ПравоАгент — AI-слой для экосистемы ПравоТех. Четыре специализированных AI-агента автономно ведут дела,
+            готовят документы, ищут в базе знаний и контролируют сроки.
+        </p>
+        <div class="hero-actions">
+            <a href="/auth/register" class="btn btn-primary btn-lg">Попробовать демо &rarr;</a>
+            <a href="/landing#features" class="btn btn-outline btn-lg">Подробнее</a>
+        </div>
+        <div class="hero-stats">
+            <div>
+                <div class="hero-stat-value">4</div>
+                <div class="hero-stat-label">AI-агента</div>
+            </div>
+            <div>
+                <div class="hero-stat-value">8+</div>
+                <div class="hero-stat-label">Типов документов</div>
+            </div>
+            <div>
+                <div class="hero-stat-value">24/7</div>
+                <div class="hero-stat-label">Автономная работа</div>
+            </div>
+            <div>
+                <div class="hero-stat-value">RAG</div>
+                <div class="hero-stat-label">База знаний</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problems -->
+    <section class="section" id="problems">
+        <div class="section-label">Проблемы</div>
+        <h2 class="section-title">Юридические департаменты<br>задыхаются в рутине</h2>
+        <p class="section-subtitle">Три главные боли, которые мешают работе юридической функции</p>
+        <div class="problems-grid">
+            <div class="problem-card">
+                <div class="problem-icon problem-icon-red">&#128200;</div>
+                <h3>Юристы тонут в рутине</h3>
+                <p>70% времени уходит на подготовку типовых документов, проверку контрагентов и согласование договоров. На реальную юридическую работу остаётся 30%.</p>
+            </div>
+            <div class="problem-card">
+                <div class="problem-icon problem-icon-orange">&#128170;</div>
+                <h3>Кадровый голод</h3>
+                <p>Найти опытного судебного юриста или договорника на рынке — сложно и дорого. Команды перегружены, сроки срываются.</p>
+            </div>
+            <div class="problem-card">
+                <div class="problem-icon problem-icon-purple">&#128202;</div>
+                <h3>Руководство не видит ценности</h3>
+                <p>Юридическая функция воспринимается как центр затрат. Нет прозрачной отчётности, KPI и метрик эффективности работы.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution -->
+    <section class="section" id="solution">
+        <div class="section-label">Решение</div>
+        <h2 class="section-title">Четыре AI-агента —<br>каждый за свою задачу</h2>
+        <p class="section-subtitle">Специализированные агенты работают в связке: автономно, с контролем качества и Human-in-the-loop</p>
+        <div class="solution-grid">
+            <div class="solution-card">
+                <div class="solution-card-header">
+                    <div class="solution-agent-icon">&#9878;</div>
+                    <div>
+                        <h3>Судебный юрист</h3>
+                        <span style="color: var(--color-text-muted); font-size: 0.85rem;">Litigation Agent</span>
+                    </div>
+                </div>
+                <p>Автономное ведение судебных дел: подготовка исков, претензий, жалоб, ходатайств. Отслеживание сроков по АПК, ГПК, КАС. Формирование правовой позиции.</p>
+                <div class="solution-tags">
+                    <span class="solution-tag">Исковые заявления</span>
+                    <span class="solution-tag">Апелляции</span>
+                    <span class="solution-tag">Кассации</span>
+                </div>
+            </div>
+            <div class="solution-card">
+                <div class="solution-card-header">
+                    <div class="solution-agent-icon green">&#128220;</div>
+                    <div>
+                        <h3>Договорник</h3>
+                        <span style="color: var(--color-text-muted); font-size: 0.85rem;">Contracts Agent</span>
+                    </div>
+                </div>
+                <p>Проверка и подготовка договоров, допсоглашений, спецификаций. Анализ рисков, контроль лимитов и типовых условий. Валидация контрагентов.</p>
+                <div class="solution-tags">
+                    <span class="solution-tag">Договоры поставки</span>
+                    <span class="solution-tag">Лицензии</span>
+                    <span class="solution-tag">Анализ рисков</span>
+                </div>
+            </div>
+            <div class="solution-card">
+                <div class="solution-card-header">
+                    <div class="solution-agent-icon blue">&#127758;</div>
+                    <div>
+                        <h3>Общий отдел</h3>
+                        <span style="color: var(--color-text-muted); font-size: 0.85rem;">General Legal Agent</span>
+                    </div>
+                </div>
+                <p>Доверенности, нотариат, НПА, согласование внутренних документов. Подготовка юридических заключений, ответы на запросы госорганов.</p>
+                <div class="solution-tags">
+                    <span class="solution-tag">Доверенности</span>
+                    <span class="solution-tag">НПА</span>
+                    <span class="solution-tag">Заключения</span>
+                </div>
+            </div>
+            <div class="solution-card">
+                <div class="solution-card-header">
+                    <div class="solution-agent-icon gold">&#128202;</div>
+                    <div>
+                        <h3>Head of Legal</h3>
+                        <span style="color: var(--color-text-muted); font-size: 0.85rem;">Дашборд руководителя</span>
+                    </div>
+                </div>
+                <p>Командирская панель: KPI департамента, загрузка команды, бюджет токенов, контроль качества. Дата-driven управление юрфункцией.</p>
+                <div class="solution-tags">
+                    <span class="solution-tag">KPI</span>
+                    <span class="solution-tag">Бюджет</span>
+                    <span class="solution-tag">Отчётность</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+        <div class="section-label">Функции</div>
+        <h2 class="section-title">Всё, что нужно для<br>юридического департамента</h2>
+        <p class="section-subtitle">Технологические возможности платформы</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">&#129302;</div>
+                <h3>Автономное ведение дел</h3>
+                <p>AI-агенты самостоятельно готовят процессуальные документы, отслеживают сроки и формируют правовую позицию. Юрист утверждает ключевые решения.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128214;</div>
+                <h3>RAG по базе знаний</h3>
+                <p>Векторный поиск по корпоративной базе знаний: судебная практика, шаблоны, юридические заключения. Контекст — из ваших документов.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128100;</div>
+                <h3>Human-in-the-loop</h3>
+                <p>Каждое важное действие проходит через утверждение юристом. Агент предлагает — человек решает. Полный контроль без потери скорости.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128269;</div>
+                <h3>Гибридный поиск</h3>
+                <p>Поиск по всем документам, делам и базе знаний. Полнотекстовый + векторный поиск с ранжированием по релевантности. Найдет всё за секунду.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section" id="architecture">
+        <div class="section-label">Архитектура</div>
+        <h2 class="section-title">Multi-Agent система</h2>
+        <p class="section-subtitle">Как устроена платформа: специализированные агенты, общая база знаний и единый дашборд</p>
+        <div class="architecture">
+            <div class="arch-diagram">
+<pre>
+┌─────────────────────────────────────────────────────┐
+│                 &#127760; Внешние LLM (DeepSeek / OpenAI / YandexGPT)    │
+└──────────────────┬──────────────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────────────┐
+│              &#9881; <span class="highlight-text">ПравоАгент Core</span>                         │
+│    Agent Orchestrator / Team Router / Budget Ctrl    │
+└──┬──────────┬──────────┬──────────┬─────────────────┘
+   │          │          │          │
+┌──▼───┐ ┌───▼───┐ ┌───▼───┐ ┌───▼──────────┐
+│ <span class="highlight-text">Судебный</span>│ │<span class="highlight-text">Договор-</span>│ │<span class="highlight-text">Общий</span> │ │<span class="highlight-text">Head of</span>  │
+│ <span class="highlight-text">юрист</span>  │ │<span class="highlight-text">ник</span>    │ │<span class="highlight-text">отдел</span> │ │<span class="highlight-text">Legal</span>    │
+└──┬───┘ └───┬───┘ └───┬───┘ └───┬──────────┘
+   │          │          │          │
+┌──▼──────────▼──────────▼──────────▼─────────────────┐
+│              &#128218; Единая база знаний (RAG / Qdrant)            │
+│      Судебная практика . Шаблоны . Заключения . НПА    │
+└─────────────────────────────────────────────────────┘
+   │          │          │          │
+┌──▼──────────▼──────────▼──────────▼─────────────────┐
+│         &#128203; Workspaces (Лит. / Догов. / Общ. / Админ)        │
+│    HTML + CSS + HTMX + Alpine.js — компонентный UI    │
+└─────────────────────────────────────────────────────┘
+</pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- For Whom -->
+    <section class="section" id="roles">
+        <div class="section-label">Для кого</div>
+        <h2 class="section-title">Платформа для всей<br>юридической команды</h2>
+        <p class="section-subtitle">Каждый участник юридического департамента получает свой инструмент</p>
+        <div class="roles-grid">
+            <div class="role-card">
+                <div class="role-icon">&#9878;</div>
+                <h3>Судебный юрист</h3>
+                <p>Автоматизация процессуальных документов, контроль сроков, претензионная работа. Меньше рутины — больше стратегии.</p>
+            </div>
+            <div class="role-card">
+                <div class="role-icon">&#128220;</div>
+                <h3>Договорник</h3>
+                <p>Шаблоны договоров, анализ рисков, проверка контрагентов. Сокращение времени на согласование в 3-5 раз.</p>
+            </div>
+            <div class="role-card">
+                <div class="role-icon">&#127758;</div>
+                <h3>Корпоративный юрист</h3>
+                <p>Доверенности, НПА, регистрационные действия. База знаний с быстрым поиском ответов на типовые вопросы.</p>
+            </div>
+            <div class="role-card">
+                <div class="role-icon">&#128202;</div>
+                <h3>Руководитель</h3>
+                <p>Дашборд с KPI, загрузкой команды и бюджетом. Прозрачность работы юрфункции для руководства компании.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <h2 class="cta-title">Готовы попробовать?</h2>
+        <p class="cta-text">Зарегистрируйтесь и получите доступ к демо-версии. Все функции работают в тестовом режиме.</p>
+        <div class="cta-actions">
+            <a href="/auth/register" class="btn btn-primary btn-lg">Попробовать демо &rarr;</a>
+            <a href="/" class="btn btn-outline btn-lg">Перейти к дашборду</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <p><strong>ПравоАгент</strong> v{{ app_version }} — Прототип для демонстрации компетенций</p>
+        <p>Станкевич Игорь Валерьевич &middot; 2026</p>
+        <p style="margin-top: var(--space-sm); font-size: 0.75rem;">
+            Это демо-прототип, созданный в рамках портфолио. Не является коммерческим продуктом.
+        </p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,159 @@
+/* Demo Banner — ПравоАгент (Прототип) */
+
+.demo-banner {
+    background: linear-gradient(135deg, #1e1b4b, #4c1d95);
+    color: #e0e7ff;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-sm);
+    text-align: center;
+    line-height: 1.5;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.demo-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.demo-banner-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.demo-banner-text {
+    position: relative;
+    z-index: 1;
+    font-weight: 500;
+}
+
+.demo-banner-text strong {
+    color: #c4b5fd;
+}
+
+.demo-banner-badge {
+    position: relative;
+    z-index: 1;
+}
+
+.demo-banner-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 14px;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+.demo-banner-close:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Banner collapsed state */
+.demo-banner-collapsed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px var(--space-md);
+    background: linear-gradient(135deg, #1e1b4b, #4c1d95);
+    cursor: pointer;
+    color: #e0e7ff;
+    font-size: var(--font-size-sm);
+    gap: var(--space-xs);
+}
+
+.demo-banner-collapsed:hover {
+    background: linear-gradient(135deg, #312e81, #5b21b6);
+}
+
+/* Banner details (expandable) */
+.demo-banner-details {
+    display: none;
+    padding: var(--space-md) var(--space-lg);
+    background: #1e1b4b;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: var(--font-size-sm);
+    color: #c4b5fd;
+    line-height: 1.6;
+}
+
+.demo-banner-details.open {
+    display: block;
+}
+
+.demo-banner-details p {
+    margin-bottom: var(--space-sm);
+}
+
+.demo-banner-details ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.demo-banner-details li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+}
+
+.demo-banner-details li::before {
+    content: '•';
+    color: #8b5cf6;
+    flex-shrink: 0;
+}
+
+.demo-banner-details .feature-tag {
+    display: inline-block;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-right: 4px;
+}
+
+.feature-tag-demo {
+    background: rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+}
+
+.feature-tag-live {
+    background: rgba(16, 185, 129, 0.3);
+    color: #34d399;
+}
+
+/* Hidden banner */
+.demo-banner.hidden,
+.demo-banner-collapsed.hidden {
+    display: none;
+}

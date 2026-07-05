@@ -1,0 +1,209 @@
+/* Tree View — ПравоАгент */
+/* File explorer / case tree navigation */
+
+.tree {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+
+.tree-item {
+    position: relative;
+}
+
+.tree-item-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 3px var(--space-sm);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+    user-select: none;
+}
+
+.tree-item-content:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+.tree-item-content.active,
+.tree-item-content.tree-selected {
+    color: var(--color-text);
+    background: rgba(140, 38, 234, 0.15);
+}
+
+.tree-item-content.drag-over {
+    background: rgba(140, 38, 234, 0.2);
+    outline: 1px dashed var(--color-primary);
+}
+
+.tree-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    transition: transform var(--transition-fast);
+    cursor: pointer;
+    font-size: 10px;
+}
+
+.tree-toggle.expanded {
+    transform: rotate(90deg);
+}
+
+.tree-toggle-hidden {
+    visibility: hidden;
+}
+
+.tree-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.tree-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tree-children {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    padding-left: 20px;
+    overflow: hidden;
+    transition: max-height var(--transition-base);
+}
+
+.tree-children.collapsed {
+    max-height: 0;
+}
+
+/* Tree item meta (badge, count) */
+.tree-meta {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.tree-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.tree-item-content:hover .tree-item-actions {
+    opacity: 1;
+}
+
+.tree-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+    background: none;
+}
+
+.tree-action:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+}
+
+/* Indentation levels */
+.tree-indent-1 { padding-left: 20px; }
+.tree-indent-2 { padding-left: 40px; }
+.tree-indent-3 { padding-left: 60px; }
+.tree-indent-4 { padding-left: 80px; }
+
+/* Drop indicator (for drag & drop) */
+.tree-drop-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-primary);
+    pointer-events: none;
+}
+
+.tree-drop-indicator.before {
+    top: -1px;
+}
+
+.tree-drop-indicator.after {
+    bottom: -1px;
+}
+
+/* Empty tree */
+.tree-empty {
+    padding: var(--space-md);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* Tree file icons (colored) */
+.tree-icon-folder {
+    color: var(--color-warning);
+}
+
+.tree-icon-file {
+    color: var(--color-text-muted);
+}
+
+.tree-icon-document {
+    color: var(--color-primary-light);
+}
+
+.tree-icon-case {
+    color: var(--color-info);
+}
+
+/* Active tree item with left border */
+.tree-item-content.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    width: 2px;
+    background: var(--color-primary);
+    border-radius: 0 2px 2px 0;
+}
+
+.tree-item-content.active {
+    position: relative;
+}
+
+/* Filtered tree — dimmed items */
+.tree-item.filtered-out > .tree-item-content {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* Scrollable tree */
+.tree-scrollable {
+    max-height: 100%;
+    overflow-y: auto;
+}

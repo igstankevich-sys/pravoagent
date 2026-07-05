@@ -1,0 +1,1025 @@
+{% extends "base.html" %}
+{% block title %}Администратор — ПравоАгент{% endblock %}
+
+{% block activity_bar %}
+<div class="panel-activity-bar">
+    <button class="activity-bar-item active" data-panel="explorer" title="Пользователи (Ctrl+B)">
+        &#128101;
+    </button>
+    <button class="activity-bar-item" data-panel="tenants-admin" title="Тенанты">
+        &#127970;
+    </button>
+    <button class="activity-bar-item" data-panel="llm-admin" title="LLM">
+        &#129302;
+    </button>
+    <button class="activity-bar-item" data-panel="health-admin" title="Health">
+        &#128154;
+    </button>
+    <button class="activity-bar-item" data-panel="logs-admin" title="Логи">
+        &#128203;
+    </button>
+    <button class="activity-bar-item" data-panel="system-admin" title="Система">
+        &#9881;
+    </button>
+    <button class="activity-bar-item" data-action="toggle-chat" title="Чат с AI-агентом">
+        &#128172;
+    </button>
+    <div class="activity-bar-bottom">
+        <button class="activity-bar-item" onclick="document.getElementById('git-modal').classList.add('open')" title="Git-интеграция">
+            &#128190;
+        </button>
+        <button class="activity-bar-item" onclick="document.getElementById('agents-modal').classList.add('open')" title="AI-агенты">
+            &#129302;
+        </button>
+        <button class="activity-bar-item" data-action="toggle-sidebar" title="Toggle Sidebar">
+            &#9776;
+        </button>
+        <button class="activity-bar-item" id="omnibox-trigger" onclick="window.omnibox.open()" title="Command Palette (Ctrl+K)">
+            &#8984;
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar_panel %}
+<div class="panel" data-panel-id="explorer" data-default-width="280">
+    <div class="panel-header">
+        <span class="panel-header-title">Администрирование</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Collapse" data-action="collapse-panel">&#9660;</button>
+            <button class="panel-header-btn" title="More">&#8942;</button>
+        </div>
+    </div>
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="admin-users">
+            <span>Пользователи</span>
+        </div>
+        <div class="panel-tab" data-tab-target="admin-tenants">
+            <span>Тенанты</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="admin-llm">
+            <span>LLM</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="admin-system">
+            <span>Система</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <div class="panel-section" data-tab-content="admin-users" style="padding: var(--space-sm);">
+            <div class="workspace-sidebar-header">
+                <span class="workspace-sidebar-title">Пользователи</span>
+                <button class="workspace-sidebar-action" title="Создать пользователя">+</button>
+            </div>
+            <div class="tree tree-scrollable">
+                {% if users %}
+                    {% for user in users %}
+                    <div class="tree-item">
+                        <div class="tree-item-content">
+                            <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                            <span class="tree-icon tree-icon-case">&#128101;</span>
+                            <span class="tree-label">{{ user.username }}</span>
+                            <span class="tree-meta badge badge-sm badge-default">{{ user.role }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="panel-empty">
+                        <div class="panel-empty-icon">&#128101;</div>
+                        <div class="panel-empty-text">Нет пользователей</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="admin-tenants" style="display: none; padding: var(--space-sm);">
+            <div class="tree tree-scrollable">
+                {% if tenants %}
+                    {% for tenant in tenants %}
+                    <div class="tree-item">
+                        <div class="tree-item-content">
+                            <span class="tree-toggle tree-toggle-hidden">&rsaquo;</span>
+                            <span class="tree-icon tree-icon-folder">&#127970;</span>
+                            <span class="tree-label">{{ tenant.name }}</span>
+                            <span class="tree-meta badge badge-sm badge-default">{{ tenant.is_active and "Активен" or "Неактивен" }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="panel-empty">
+                        <div class="panel-empty-icon">&#127970;</div>
+                        <div class="panel-empty-text">Нет тенантов</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="admin-llm" style="display: none; padding: var(--space-sm);">
+            <div class="panel-empty">
+                <div class="panel-empty-icon">&#129302;</div>
+                <div class="panel-empty-text">Управление LLM</div>
+            </div>
+        </div>
+        <div class="panel-section" data-tab-content="admin-system" style="display: none; padding: var(--space-sm);">
+            <div class="panel-empty">
+                <div class="panel-empty-icon">&#9881;</div>
+                <div class="panel-empty-text">Системные настройки</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block main_panel %}
+<div class="panel" data-panel-id="main" style="border-right: none;">
+    <div class="panel-tabs">
+        <div class="panel-tab active" data-tab-target="admin-main">
+            <span>Главная</span>
+        </div>
+        <div class="panel-tab" data-tab-target="audit-logs-tab">
+            <span>Аудит</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="health-check-tab">
+            <span>Health</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+        <div class="panel-tab" data-tab-target="budget-tab">
+            <span>Бюджет</span>
+            <button class="panel-tab-close">&times;</button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ADMIN MAIN                                                    -->
+    <!-- ============================================================ -->
+    <div class="panel-body" data-tab-content="admin-main">
+        <div class="workspace-toolbar">
+            <span class="workspace-toolbar-title">Админ-панель</span>
+            <div class="workspace-toolbar-actions">
+                <button class="btn btn-sm btn-secondary" onclick="location.reload()">&#128260; Обновить</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" style="margin-top: var(--space-md);">
+            <div class="card card-hover" style="text-align: center;">
+                <div class="card-body">
+                    <div class="stat-value" id="stat-users">{{ users|length }}</div>
+                    <div class="stat-label">Пользователей</div>
+                </div>
+            </div>
+            <div class="card card-hover" style="text-align: center;">
+                <div class="card-body">
+                    <div class="stat-value" id="stat-tenants">{{ tenants|length }}</div>
+                    <div class="stat-label">Тенантов</div>
+                </div>
+            </div>
+            <div class="card card-hover" style="text-align: center;">
+                <div class="card-body">
+                    <div class="stat-value" id="stat-health">&#8987;</div>
+                    <div class="stat-label">Health Check</div>
+                </div>
+            </div>
+            <div class="card card-hover" style="text-align: center;">
+                <div class="card-body">
+                    <div class="stat-value" id="stat-logs">{{ audit_logs|length }}</div>
+                    <div class="stat-label">Последних логов</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== USERS TABLE ===================== -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-header">
+                <span class="card-header-title">&#128101; Пользователи</span>
+                <div class="card-header-actions">
+                    <button class="btn btn-sm" onclick="loadUsers()">&#128260; Обновить</button>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="data-table-wrapper">
+                    <table class="data-table" id="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Имя</th>
+                                <th>Email</th>
+                                <th>Роль</th>
+                                <th>Тенант</th>
+                                <th>Статус</th>
+                                <th class="cell-action"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            {% if users %}
+                                {% for user in users %}
+                                <tr>
+                                    <td class="cell-muted">{{ user.id }}</td>
+                                    <td><strong>{{ user.username }}</strong></td>
+                                    <td class="cell-muted">{{ user.email }}</td>
+                                    <td><span class="badge badge-default badge-sm">{{ user.role }}</span></td>
+                                    <td class="cell-muted">{{ user.tenant_id or "—" }}</td>
+                                    <td>
+                                        {% if user.is_active %}
+                                        <span class="status-text"><span class="status-dot status-dot-open"></span> Активен</span>
+                                        {% else %}
+                                        <span class="status-text"><span class="status-dot status-dot-closed"></span> Заблокирован</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="cell-action">
+                                        <button class="table-row-action" onclick="toggleUser({{ user.id }})" title="Заблокировать/Разблокировать">&#128274;</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr id="users-empty-row">
+                                    <td colspan="7" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                                        Нет пользователей
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== TENANTS TABLE ===================== -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-header">
+                <span class="card-header-title">&#127970; Тенанты</span>
+                <div class="card-header-actions">
+                    <button class="btn btn-sm" onclick="loadTenants()">&#128260; Обновить</button>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="data-table-wrapper">
+                    <table class="data-table" id="tenants-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Название</th>
+                                <th>Лимит токенов</th>
+                                <th>Использовано</th>
+                                <th>Использование</th>
+                                <th>Статус</th>
+                                <th class="cell-action"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tenants-table-body">
+                            {% if tenants %}
+                                {% for tenant in tenants %}
+                                <tr>
+                                    <td class="cell-muted">{{ tenant.id }}</td>
+                                    <td><strong>{{ tenant.name }}</strong></td>
+                                    <td class="cell-muted">{{ "{:,}".format(tenant.monthly_token_limit) }}</td>
+                                    <td class="cell-muted">{{ "{:,}".format(tenant.tokens_used_this_month) }}</td>
+                                    <td>
+                                        <div class="progress-bar" style="width: 100px; height: 6px; background: var(--color-bg-tertiary); border-radius: 3px; overflow: hidden;">
+                                            {% set pct = (tenant.tokens_used_this_month / tenant.monthly_token_limit * 100) if tenant.monthly_token_limit and tenant.monthly_token_limit > 0 else 0 %}
+                                            <div class="progress-fill" style="width: {{ pct }}%; height: 100%; background: {% if pct > 90 %}var(--color-danger){% elif pct > 70 %}var(--color-warning){% else %}var(--color-success){% endif %};"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if tenant.is_active %}
+                                        <span class="badge badge-success badge-sm">Активен</span>
+                                        {% else %}
+                                        <span class="badge badge-danger badge-sm">Неактивен</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="cell-action">
+                                        <button class="table-row-action" onclick="toggleTenant({{ tenant.id }})" title="Вкл/Выкл">&#128682;</button>
+                                        <button class="table-row-action" onclick="showBudgetForm({{ tenant.id }}, '{{ tenant.name }}', {{ tenant.monthly_token_limit }})" title="Лимит">&#128200;</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr id="tenants-empty-row">
+                                    <td colspan="7" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                                        Нет тенантов
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== LLM USAGE TABLE ===================== -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-header">
+                <span class="card-header-title">&#129302; LLM Usage по тенантам</span>
+                <div class="card-header-actions">
+                    <button class="btn btn-sm" onclick="loadLlmUsage()">&#128260; Обновить</button>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="data-table-wrapper">
+                    <table class="data-table" id="llm-usage-table">
+                        <thead>
+                            <tr>
+                                <th>Тенант</th>
+                                <th>Месячный лимит</th>
+                                <th>Использовано</th>
+                                <th>Осталось</th>
+                                <th>% использования</th>
+                                <th>Прогресс</th>
+                            </tr>
+                        </thead>
+                        <tbody id="llm-usage-body">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                                    Загрузка...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- AUDIT LOGS TAB                                               -->
+    <!-- ============================================================ -->
+    <div class="panel-body" data-tab-content="audit-logs-tab" style="display: none;">
+        <div class="workspace-toolbar">
+            <span class="workspace-toolbar-title">Логи аудита</span>
+            <div class="workspace-toolbar-actions">
+                <button class="btn btn-sm" onclick="loadAuditLogs()">&#128260; Обновить</button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-body">
+                <div style="display: flex; gap: var(--space-md); align-items: flex-end; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 140px;">
+                        <label style="font-size: var(--font-size-sm); color: var(--color-text-muted); display: block; margin-bottom: 4px;">Действие</label>
+                        <input type="text" id="filter-action" class="input" placeholder="action..." style="width: 100%;" oninput="scheduleAuditReload()">
+                    </div>
+                    <div style="flex: 1; min-width: 140px;">
+                        <label style="font-size: var(--font-size-sm); color: var(--color-text-muted); display: block; margin-bottom: 4px;">Тип сущности</label>
+                        <input type="text" id="filter-entity" class="input" placeholder="case, document..." style="width: 100%;" oninput="scheduleAuditReload()">
+                    </div>
+                    <div style="flex: 1; min-width: 140px;">
+                        <label style="font-size: var(--font-size-sm); color: var(--color-text-muted); display: block; margin-bottom: 4px;">ID пользователя</label>
+                        <input type="number" id="filter-user" class="input" placeholder="user_id..." style="width: 100%;" oninput="scheduleAuditReload()">
+                    </div>
+                    <div>
+                        <label style="font-size: var(--font-size-sm); color: var(--color-text-muted); display: block; margin-bottom: 4px;">&nbsp;</label>
+                        <button class="btn btn-sm" onclick="loadAuditLogs()">Применить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-body" style="padding: 0;">
+                <div class="data-table-wrapper">
+                    <table class="data-table data-table-compact">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Время</th>
+                                <th>Пользователь</th>
+                                <th>Действие</th>
+                                <th>Тип</th>
+                                <th>Entity ID</th>
+                                <th>Детали</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-logs-body">
+                            {% if audit_logs %}
+                                {% for log in audit_logs %}
+                                <tr>
+                                    <td class="cell-muted">{{ log.id }}</td>
+                                    <td class="cell-muted">{{ log.timestamp.strftime("%d.%m.%Y %H:%M") if log.timestamp else "—" }}</td>
+                                    <td>{{ log.user_name or log.user_id or "—" }}</td>
+                                    <td><code>{{ log.action }}</code></td>
+                                    <td><span class="badge badge-default badge-sm">{{ log.entity_type or "—" }}</span></td>
+                                    <td class="cell-muted">{{ log.entity_id or "—" }}</td>
+                                    <td class="cell-muted">{{ log.details[:100] if log.details else "—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr id="audit-empty-row">
+                                    <td colspan="7" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                                        Нет записей аудита
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- HEALTH CHECK TAB                                             -->
+    <!-- ============================================================ -->
+    <div class="panel-body" data-tab-content="health-check-tab" style="display: none;">
+        <div class="workspace-toolbar">
+            <span class="workspace-toolbar-title">Health Check</span>
+            <div class="workspace-toolbar-actions">
+                <button class="btn btn-sm" onclick="loadHealth()">&#128260; Проверить</button>
+            </div>
+        </div>
+
+        <div id="health-cards" style="margin-top: var(--space-md);">
+            <!-- Populated by JS -->
+            <div style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                &#8987; Загрузка...
+            </div>
+        </div>
+
+        <!-- Service status grid (dynamically loaded) -->
+        <div id="health-details" class="stats-grid" style="margin-top: var(--space-md);">
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- BUDGET TAB                                                   -->
+    <!-- ============================================================ -->
+    <div class="panel-body" data-tab-content="budget-tab" style="display: none;">
+        <div class="workspace-toolbar">
+            <span class="workspace-toolbar-title">Бюджет и лимиты тенантов</span>
+            <div class="workspace-toolbar-actions">
+                <button class="btn btn-sm" onclick="loadBudgetData()">&#128260; Обновить</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-header">
+                <span class="card-header-title">&#128200; Настройка лимитов</span>
+            </div>
+            <div class="card-body">
+                <div id="budget-form">
+                    <div style="display: flex; gap: var(--space-md); align-items: flex-end; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="font-size: var(--font-size-sm); color: var(--color-text-muted); display: block; margin-bottom: 4px;">Тенант</label>
+                            <select id="budget-tenant-select" class="input" style="width: 100%;">
+                                <option value="">-- Выберите тенанта --</option>
+                                {% if tenants %}
+                                    {% for tenant in tenants %}
+                                    <option value="{{ tenant.id }}">{{ tenant.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="font-size: var(--font-size-sm); color: var(--color-text-muted); display: block; margin-bottom: 4px;">Месячный лимит токенов</label>
+                            <input type="number" id="budget-limit-input" class="input" placeholder="10000000" style="width: 100%;" min="0">
+                        </div>
+                        <div>
+                            <label style="font-size: var(--font-size-sm); color: var(--color-text-muted); display: block; margin-bottom: 4px;">&nbsp;</label>
+                            <button class="btn btn-sm" onclick="updateBudget()">&#128190; Сохранить</button>
+                        </div>
+                    </div>
+                    <div id="budget-result" style="margin-top: var(--space-sm); display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget overview per tenant -->
+        <div class="card" style="margin-top: var(--space-md);">
+            <div class="card-header">
+                <span class="card-header-title">&#128202; Обзор бюджетов</span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Тенант</th>
+                                <th>Лимит</th>
+                                <th>Использовано</th>
+                                <th>Осталось</th>
+                                <th>% использования</th>
+                                <th>Прогресс</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="budget-overview-body">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: var(--space-xl); color: var(--color-text-muted);">
+                                    Загрузка...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-resize-handle" data-resize-target="right"></div>
+</div>
+{% endblock %}
+
+{% block right_panel %}
+<div class="panel" data-panel-id="tenants-admin" data-default-width="320" style="width: 320px; flex: none;">
+    <div class="panel-header">
+        <span class="panel-header-title">Детали</span>
+        <div class="panel-header-actions">
+            <button class="panel-header-btn" title="Close" data-action="collapse-panel">&times;</button>
+        </div>
+    </div>
+    <div class="panel-body" style="padding: 0;">
+        <!-- Admin Details Section (shown by default) -->
+        <div id="admin-details-content" class="chat-widget-panel-section" style="display: block;">
+            <div class="panel-section" style="padding: var(--space-sm);">
+                <div class="panel-section-title">Быстрые действия</div>
+                <div class="panel-section-item" onclick="document.querySelector('[data-tab-target=\\'admin-main\\']')?.click()">
+                    <span class="item-icon">&#128101;</span>
+                    <span>Пользователи</span>
+                </div>
+                <div class="panel-section-item" onclick="loadTenants()">
+                    <span class="item-icon">&#127970;</span>
+                    <span>Тенанты</span>
+                </div>
+                <div class="panel-section-item" onclick="loadLlmUsage()">
+                    <span class="item-icon">&#129302;</span>
+                    <span>LLM Usage</span>
+                </div>
+                <div class="panel-section-item" onclick="loadHealth()">
+                    <span class="item-icon">&#128154;</span>
+                    <span>Health Check</span>
+                </div>
+                <div class="panel-section-item" onclick="loadAuditLogs()">
+                    <span class="item-icon">&#128203;</span>
+                    <span>Логи аудита</span>
+                </div>
+                <div class="panel-section-item" onclick="loadBudgetData()">
+                    <span class="item-icon">&#128200;</span>
+                    <span>Бюджет</span>
+                </div>
+            </div>
+            <div class="panel-section" style="padding: var(--space-sm);">
+                <div class="panel-section-title">Информация</div>
+                <div class="panel-section-item">
+                    <span class="item-icon">&#9200;</span>
+                    <span id="info-time"></span>
+                </div>
+            </div>
+        </div>
+        <!-- Chat Section (hidden by default) -->
+        <div id="chat-content" class="chat-widget-panel-section" style="display: none; height: 100%;">
+            <div class="chat-widget" data-agent-type="admin" data-title="AI-агент: Администратор" data-auto-init></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ================================================================
+// UTILITY
+// ================================================================
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+function truncate(str, len) {
+    if (!str) return '';
+    return str.length > len ? str.substring(0, len) + '...' : str;
+}
+function getToken() {
+    const m = document.cookie.match(/access_token=([^;]+)/);
+    return m ? m[1] : '';
+}
+function apiHeaders() {
+    const t = getToken();
+    return t ? { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+}
+function apiFetch(url, opts) {
+    return fetch(url, Object.assign({ headers: apiHeaders() }, opts || {}));
+}
+function showToast(msg, type) {
+    const el = document.getElementById('toast-banner') || (function() {
+        const d = document.createElement('div');
+        d.id = 'toast-banner';
+        d.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:8px 16px;border-radius:6px;z-index:9999;font-size:13px;transition:opacity .3s';
+        document.body.appendChild(d);
+        return d;
+    })();
+    el.textContent = msg;
+    el.style.background = type === 'error' ? 'var(--color-danger-bg,#d32f2f)' : type === 'success' ? 'var(--color-success-bg,#388e3c)' : 'var(--color-bg-secondary,#333)';
+    el.style.color = '#fff';
+    el.style.opacity = '1';
+    setTimeout(() => { el.style.opacity = '0'; }, 3000);
+}
+
+// ================================================================
+// HEALTH CHECK
+// ================================================================
+function loadHealth() {
+    const container = document.getElementById('health-cards');
+    const details = document.getElementById('health-details');
+    container.innerHTML = '<div style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">&#8987; Проверка...</div>';
+    details.innerHTML = '';
+
+    apiFetch('/api/admin/health')
+        .then(r => r.json())
+        .then(data => {
+            const svc = data.services || {};
+            const cards = [
+                { icon: '&#9889;', title: 'API', status: svc.api?.status || 'unknown' },
+                { icon: '&#128451;', title: 'Database', status: svc.database?.status || 'unknown' },
+                { icon: '&#128230;', title: 'Qdrant', status: svc.qdrant?.status || 'unknown' },
+            ];
+
+            container.innerHTML = '<div class="stats-grid">' + cards.map(c =>
+                '<div class="card card-hover" style="text-align:center;">' +
+                    '<div class="card-body">' +
+                        '<div class="stat-value" style="color:' + (c.status === 'connected' || c.status === 'healthy' ? 'var(--color-success)' : 'var(--color-danger)') + ';">' +
+                            (c.status === 'connected' || c.status === 'healthy' ? '&#9989;' : '&#10060;') +
+                        '</div>' +
+                        '<div class="stat-label">' + c.title + '</div>' +
+                        '<span class="badge badge-sm ' + (c.status === 'connected' || c.status === 'healthy' ? 'badge-success' : 'badge-danger') + '">' + c.status + '</span>' +
+                    '</div>' +
+                '</div>'
+            ).join('') + '</div>';
+
+            // Update stats card
+            const statEl = document.getElementById('stat-health');
+            if (statEl) statEl.textContent = data.status === 'ok' ? '\u2705' : '\u26A0\uFE0F';
+
+            // Details
+            details.innerHTML =
+                '<div class="card" style="grid-column:1/-1;">' +
+                    '<div class="card-header"><span class="card-header-title">&#128196; Подробности</span></div>' +
+                    '<div class="card-body">' +
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm);font-size:var(--font-size-sm);">' +
+                            '<div><strong>Статус:</strong> ' + data.status + '</div>' +
+                            '<div><strong>Python:</strong> ' + (data.python || '—') + '</div>' +
+                            '<div><strong>Timestamp:</strong> ' + (data.timestamp || '—') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+        })
+        .catch(err => {
+            container.innerHTML = '<div class="card"><div class="card-body" style="text-align:center;color:var(--color-danger);">&#10060; Ошибка: ' + err.message + '</div></div>';
+            const statEl = document.getElementById('stat-health');
+            if (statEl) statEl.textContent = '\u274C';
+        });
+}
+
+// ================================================================
+// USERS
+// ================================================================
+function loadUsers() {
+    const tbody = document.getElementById('users-table-body');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">&#8987; Загрузка...</td></tr>';
+
+    apiFetch('/api/admin/users')
+        .then(r => r.json())
+        .then(data => {
+            const items = data.items || [];
+            document.getElementById('stat-users').textContent = items.length;
+
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">Нет пользователей</td></tr>';
+                return;
+            }
+            tbody.innerHTML = items.map(u =>
+                '<tr>' +
+                    '<td class="cell-muted">' + u.id + '</td>' +
+                    '<td><strong>' + escapeHtml(u.username) + '</strong></td>' +
+                    '<td class="cell-muted">' + escapeHtml(u.email) + '</td>' +
+                    '<td><span class="badge badge-default badge-sm">' + escapeHtml(u.role) + '</span></td>' +
+                    '<td class="cell-muted">' + (u.tenant_id || '—') + '</td>' +
+                    '<td>' + (u.is_active
+                        ? '<span class="status-text"><span class="status-dot status-dot-open"></span> Активен</span>'
+                        : '<span class="status-text"><span class="status-dot status-dot-closed"></span> Заблокирован</span>') +
+                    '</td>' +
+                    '<td class="cell-action"><button class="table-row-action" onclick="toggleUser(' + u.id + ')" title="Заблокировать/Разблокировать">&#128274;</button></td>' +
+                '</tr>'
+            ).join('');
+        })
+        .catch(err => {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-danger);">&#10060; ' + escapeHtml(err.message) + '</td></tr>';
+        });
+}
+
+function toggleUser(userId) {
+    apiFetch('/api/admin/users/' + userId + '/toggle', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'toggled') {
+                showToast(data.is_active ? 'Пользователь разблокирован' : 'Пользователь заблокирован', 'success');
+                loadUsers();
+            } else {
+                showToast('Ошибка: ' + (data.detail || 'неизвестная'), 'error');
+            }
+        })
+        .catch(err => showToast('Ошибка: ' + err.message, 'error'));
+}
+
+// ================================================================
+// TENANTS
+// ================================================================
+function loadTenants() {
+    const tbody = document.getElementById('tenants-table-body');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">&#8987; Загрузка...</td></tr>';
+
+    apiFetch('/api/admin/tenants')
+        .then(r => r.json())
+        .then(data => {
+            const items = data.items || [];
+            document.getElementById('stat-tenants').textContent = items.length;
+
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">Нет тенантов</td></tr>';
+                return;
+            }
+            tbody.innerHTML = items.map(t => {
+                const pct = t.monthly_token_limit && t.monthly_token_limit > 0
+                    ? Math.round((t.tokens_used_this_month / t.monthly_token_limit) * 100) : 0;
+                const barColor = pct > 90 ? 'var(--color-danger)' : pct > 70 ? 'var(--color-warning)' : 'var(--color-success)';
+                return '<tr>' +
+                    '<td class="cell-muted">' + t.id + '</td>' +
+                    '<td><strong>' + escapeHtml(t.name) + '</strong></td>' +
+                    '<td class="cell-muted">' + (t.monthly_token_limit || 0).toLocaleString() + '</td>' +
+                    '<td class="cell-muted">' + (t.tokens_used_this_month || 0).toLocaleString() + '</td>' +
+                    '<td><div class="progress-bar" style="width:100px;height:6px;background:var(--color-bg-tertiary);border-radius:3px;overflow:hidden;">' +
+                        '<div class="progress-fill" style="width:' + pct + '%;height:100%;background:' + barColor + ';"></div>' +
+                    '</div></td>' +
+                    '<td>' + (t.is_active
+                        ? '<span class="badge badge-success badge-sm">Активен</span>'
+                        : '<span class="badge badge-danger badge-sm">Неактивен</span>') +
+                    '</td>' +
+                    '<td class="cell-action">' +
+                        '<button class="table-row-action" onclick="toggleTenant(' + t.id + ')" title="Вкл/Выкл">&#128682;</button>' +
+                        '<button class="table-row-action" onclick="showBudgetForm(' + t.id + ',\'' + escapeHtml(t.name) + '\',' + t.monthly_token_limit + ')" title="Лимит">&#128200;</button>' +
+                    '</td>' +
+                '</tr>';
+            }).join('');
+        })
+        .catch(err => {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-danger);">&#10060; ' + escapeHtml(err.message) + '</td></tr>';
+        });
+}
+
+function toggleTenant(tenantId) {
+    apiFetch('/api/admin/tenants/' + tenantId + '/toggle', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'toggled') {
+                showToast(data.is_active ? 'Тенант активирован' : 'Тенант деактивирован', 'success');
+                loadTenants();
+                loadLlmUsage();
+                loadBudgetData();
+            } else {
+                showToast('Ошибка: ' + (data.detail || 'неизвестная'), 'error');
+            }
+        })
+        .catch(err => showToast('Ошибка: ' + err.message, 'error'));
+}
+
+// ================================================================
+// LLM USAGE
+// ================================================================
+function loadLlmUsage() {
+    const tbody = document.getElementById('llm-usage-body');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">&#8987; Загрузка...</td></tr>';
+
+    apiFetch('/api/admin/llm-usage')
+        .then(r => r.json())
+        .then(data => {
+            const items = data.items || [];
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">Нет данных</td></tr>';
+                return;
+            }
+            tbody.innerHTML = items.map(t => {
+                const pct = t.usage_pct || 0;
+                const barColor = pct > 90 ? 'var(--color-danger)' : pct > 70 ? 'var(--color-warning)' : 'var(--color-success)';
+                const remaining = (t.remaining < 0 ? 0 : t.remaining);
+                return '<tr>' +
+                    '<td><strong>' + escapeHtml(t.tenant_name) + '</strong></td>' +
+                    '<td class="cell-muted">' + (t.monthly_limit || 0).toLocaleString() + '</td>' +
+                    '<td class="cell-muted">' + (t.tokens_used || 0).toLocaleString() + '</td>' +
+                    '<td class="cell-muted">' + remaining.toLocaleString() + '</td>' +
+                    '<td>' +
+                        '<span class="badge badge-sm ' + (pct > 90 ? 'badge-danger' : pct > 70 ? 'badge-warning' : 'badge-success') + '">' +
+                            pct + '%' +
+                        '</span>' +
+                    '</td>' +
+                    '<td><div class="progress-bar" style="width:120px;height:8px;background:var(--color-bg-tertiary);border-radius:4px;overflow:hidden;">' +
+                        '<div class="progress-fill" style="width:' + Math.min(pct, 100) + '%;height:100%;background:' + barColor + ';"></div>' +
+                    '</div></td>' +
+                '</tr>';
+            }).join('');
+        })
+        .catch(err => {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:var(--space-xl);color:var(--color-danger);">&#10060; ' + escapeHtml(err.message) + '</td></tr>';
+        });
+}
+
+// ================================================================
+// AUDIT LOGS
+// ================================================================
+let auditReloadTimer = null;
+function scheduleAuditReload() {
+    if (auditReloadTimer) clearTimeout(auditReloadTimer);
+    auditReloadTimer = setTimeout(loadAuditLogs, 500);
+}
+
+function loadAuditLogs() {
+    const tbody = document.getElementById('audit-logs-body');
+    const action = document.getElementById('filter-action')?.value || '';
+    const entity = document.getElementById('filter-entity')?.value || '';
+    const userId = document.getElementById('filter-user')?.value || '';
+
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">&#8987; Загрузка...</td></tr>';
+
+    let url = '/api/admin/audit-logs?limit=50';
+    if (action) url += '&action=' + encodeURIComponent(action);
+    if (entity) url += '&entity_type=' + encodeURIComponent(entity);
+    if (userId) url += '&user_id=' + encodeURIComponent(userId);
+
+    apiFetch(url)
+        .then(r => r.json())
+        .then(data => {
+            const items = data.items || [];
+            document.getElementById('stat-logs').textContent = items.length;
+
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">Нет записей аудита</td></tr>';
+                return;
+            }
+            tbody.innerHTML = items.map(l =>
+                '<tr>' +
+                    '<td class="cell-muted">' + l.id + '</td>' +
+                    '<td class="cell-muted">' + (l.timestamp ? new Date(l.timestamp).toLocaleString('ru-RU') : '—') + '</td>' +
+                    '<td>' + escapeHtml(l.user_name || l.user_id || '—') + '</td>' +
+                    '<td><code>' + escapeHtml(l.action) + '</code></td>' +
+                    '<td><span class="badge badge-default badge-sm">' + escapeHtml(l.entity_type || '—') + '</span></td>' +
+                    '<td class="cell-muted">' + escapeHtml(l.entity_id || '—') + '</td>' +
+                    '<td class="cell-muted" title="' + escapeHtml(l.details || '') + '">' + truncate(escapeHtml(l.details || '—'), 80) + '</td>' +
+                '</tr>'
+            ).join('');
+        })
+        .catch(err => {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-danger);">&#10060; ' + escapeHtml(err.message) + '</td></tr>';
+        });
+}
+
+// ================================================================
+// BUDGET (вкладка)
+// ================================================================
+function loadBudgetData() {
+    const tbody = document.getElementById('budget-overview-body');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">&#8987; Загрузка...</td></tr>';
+
+    apiFetch('/api/admin/llm-usage')
+        .then(r => r.json())
+        .then(data => {
+            const items = data.items || [];
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-text-muted);">Нет данных</td></tr>';
+                return;
+            }
+            tbody.innerHTML = items.map(t => {
+                const pct = t.usage_pct || 0;
+                const remaining = Math.max(t.remaining || 0, 0);
+                let status = 'ok';
+                let statusLabel = '&#9989; Норма';
+                if (pct >= 90) { status = 'critical'; statusLabel = '&#128308; Критично'; }
+                else if (pct >= 80) { status = 'warning'; statusLabel = '&#128992; Внимание'; }
+                const barColor = pct > 90 ? 'var(--color-danger)' : pct > 70 ? 'var(--color-warning)' : 'var(--color-success)';
+                return '<tr>' +
+                    '<td><strong>' + escapeHtml(t.tenant_name) + '</strong></td>' +
+                    '<td class="cell-muted">' + (t.monthly_limit || 0).toLocaleString() + '</td>' +
+                    '<td class="cell-muted">' + (t.tokens_used || 0).toLocaleString() + '</td>' +
+                    '<td class="cell-muted">' + remaining.toLocaleString() + '</td>' +
+                    '<td><span class="badge badge-sm ' +
+                        (status === 'critical' ? 'badge-danger' : status === 'warning' ? 'badge-warning' : 'badge-success') +
+                        '">' + pct + '%</span></td>' +
+                    '<td><div class="progress-bar" style="width:120px;height:8px;background:var(--color-bg-tertiary);border-radius:4px;overflow:hidden;">' +
+                        '<div class="progress-fill" style="width:' + Math.min(pct, 100) + '%;height:100%;background:' + barColor + ';"></div>' +
+                    '</div></td>' +
+                    '<td>' + statusLabel + '</td>' +
+                '</tr>';
+            }).join('');
+        })
+        .catch(err => {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-xl);color:var(--color-danger);">&#10060; ' + escapeHtml(err.message) + '</td></tr>';
+        });
+}
+
+// Show budget form in the sidebar / quick edit
+function showBudgetForm(tenantId, tenantName, currentLimit) {
+    // Switch to budget tab
+    const budgetTab = document.querySelector('[data-tab-target="budget-tab"]');
+    if (budgetTab) budgetTab.click();
+
+    // Fill form
+    const select = document.getElementById('budget-tenant-select');
+    const input = document.getElementById('budget-limit-input');
+    if (select) select.value = tenantId;
+    if (input) {
+        input.value = currentLimit;
+        input.focus();
+    }
+
+    const result = document.getElementById('budget-result');
+    if (result) {
+        result.style.display = 'block';
+        result.innerHTML = '<span style="color:var(--color-text-muted);">Настроить лимит для <strong>' + escapeHtml(tenantName) + '</strong></span>';
+    }
+}
+
+function updateBudget() {
+    const select = document.getElementById('budget-tenant-select');
+    const input = document.getElementById('budget-limit-input');
+    const result = document.getElementById('budget-result');
+
+    if (!select || !input || !result) return;
+
+    const tenantId = parseInt(select.value);
+    const monthlyLimit = parseInt(input.value);
+
+    if (!tenantId) {
+        result.style.display = 'block';
+        result.innerHTML = '<span style="color:var(--color-warning);">&#9888; Выберите тенанта</span>';
+        return;
+    }
+    if (isNaN(monthlyLimit) || monthlyLimit < 0) {
+        result.style.display = 'block';
+        result.innerHTML = '<span style="color:var(--color-warning);">&#9888; Укажите корректный лимит</span>';
+        return;
+    }
+
+    result.style.display = 'block';
+    result.innerHTML = '&#8987; Сохранение...';
+
+    apiFetch('/api/admin/tenants/' + tenantId + '/budget?monthly_limit=' + monthlyLimit, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'updated') {
+                result.innerHTML = '<span style="color:var(--color-success);">&#9989; Лимит обновлён: ' + data.monthly_limit.toLocaleString() + '</span>';
+                loadBudgetData();
+                loadTenants();
+                loadLlmUsage();
+            } else {
+                result.innerHTML = '<span style="color:var(--color-danger);">&#10060; ' + (data.detail || 'Ошибка') + '</span>';
+            }
+        })
+        .catch(err => {
+            result.innerHTML = '<span style="color:var(--color-danger);">&#10060; ' + escapeHtml(err.message) + '</span>';
+        });
+}
+
+// ================================================================
+// INITIAL LOAD
+// ================================================================
+document.addEventListener('DOMContentLoaded', function() {
+    loadHealth();
+    loadLlmUsage();
+
+    // ===== Chat toggle =====
+    document.querySelectorAll('[data-action="toggle-chat"]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var panel = document.querySelector('.panel[data-panel-id="tenants-admin"]');
+            if (!panel) return;
+
+            // Ensure the panel is visible (uncollapse if needed)
+            if (panel.classList.contains('panel-collapsed')) {
+                panel.classList.remove('panel-collapsed');
+            }
+
+            // Activate the panel via activity bar
+            var actBtn = document.querySelector('.activity-bar-item[data-panel="tenants-admin"]');
+            if (actBtn && window.panelSystem) {
+                window.panelSystem.toggleActivityPanel('tenants-admin');
+            }
+
+            // Switch content to chat
+            var detailsContent = document.getElementById('admin-details-content');
+            var chatContent = document.getElementById('chat-content');
+            if (detailsContent && chatContent) {
+                detailsContent.style.display = 'none';
+                chatContent.style.display = 'block';
+            }
+        });
+    });
+
+    // Update time
+    const infoTime = document.getElementById('info-time');
+    if (infoTime) {
+        function updateTime() {
+            infoTime.textContent = new Date().toLocaleString('ru-RU');
+        }
+        updateTime();
+        setInterval(updateTime, 30000);
+    }
+});
+</script>
+{% endblock %}
