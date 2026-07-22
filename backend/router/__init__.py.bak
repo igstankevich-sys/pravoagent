@@ -1,0 +1,29 @@
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from backend.config import settings
+import datetime
+import platform
+
+router = APIRouter(tags=["ui"])
+templates = Jinja2Templates(directory="templates")
+
+
+@router.get("/", response_class=HTMLResponse)
+def index(request: Request):
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "demo_mode": settings.demo_mode, "app_name": settings.app_name},
+    )
+
+
+@router.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "app": settings.app_name,
+        "version": settings.app_version,
+        "demo_mode": settings.demo_mode,
+        "timestamp": datetime.datetime.utcnow().isoformat(),
+        "python": platform.python_version(),
+    }

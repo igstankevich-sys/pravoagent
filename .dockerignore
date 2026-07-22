@@ -39,3 +39,14 @@ data/
 
 # Logs
 *.log
+
+# Документация и dev-артефакты (хранятся на VPS, не нужны в runtime)
+.claude/
+doc/
+Makefile
+requirements-dev.txt
+*.md
+!README.md
+photo_resume.jpg
+career-journal.md
+.git/

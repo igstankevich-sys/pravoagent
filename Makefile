@@ -20,7 +20,7 @@ help: ## Этот список команд
 
 install: ## Создать venv и поставить зависимости
 	$(PYTHON) -m venv .venv 2>/dev/null || true
-	. .venv/bin/activate && pip install -U pip && pip install -r requirements.txt
+	. .venv/bin/activate && pip install -U pip && pip install -r requirements.txt && pip install -r requirements-dev.txt
 
 run: ## uvicorn dev-сервер (--reload) на :$(PORT)
 	$(PYTHON) -m uvicorn backend.main:app --reload --host 0.0.0.0 --port $(PORT)

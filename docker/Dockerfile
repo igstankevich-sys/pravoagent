@@ -1,30 +1,35 @@
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     curl \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
     libgdk-pixbuf-xlib-2.0-0 \
-    libffi-dev \
     shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
-# Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Application
 COPY . .
 
-# Create data directories
-RUN mkdir -p data/uploads data/exports
+RUN mkdir -p data/uploads data/exports \
+    && chmod +x docker/entrypoint.sh
 
 EXPOSE 8000
-
-RUN chmod +x docker/entrypoint.sh
 
 ENTRYPOINT ["/app/docker/entrypoint.sh"]

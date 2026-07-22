@@ -1,0 +1,5 @@
+-r requirements.txt
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+# Для production-эмбеддингов (сейчас embedder.py в mock-режиме):
+# sentence-transformers>=3.0.0
